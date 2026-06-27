@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — Commandes{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1 class="headline">🌿 Commandes reçues</h1>
+    <p style="color:var(--clr-text-muted);margin-bottom:2rem;font-size:0.9rem">{{ orders|length }} commande(s) au total</p>
+
+    {% if not orders %}
+    <div style="text-align:center;padding:4rem;color:var(--clr-text-muted);background:var(--clr-surface);border-radius:16px;border:1.5px solid var(--clr-border)">
+        Aucune commande pour l'instant.
+    </div>
+    {% else %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Discord</th>
+                    <th>Produit</th>
+                    <th>Prix</th>
+                    <th>CGV acceptées</th>
+                    <th>Statut</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td style="color:var(--clr-text-dim)">#{{ o.id }}</td>
+                    <td>{{ o.created_at[:16].replace('T', ' ') }}</td>
+                    <td style="color:var(--clr-text)">{{ o.name }}</td>
+                    <td>{{ o.email }}</td>
+                    <td>{{ o.discord or '—' }}</td>
+                    <td style="color:var(--clr-brand-light)">{{ o.product }}</td>
+                    <td style="color:var(--clr-accent);font-weight:600">{{ o.product_price }}</td>
+                    <td style="color:{% if o.accepted_cgv %}var(--clr-brand){% else %}#ff6b6b{% endif %}">
+                        {{ '✓ Oui' if o.accepted_cgv else '✗ Non' }}
+                    </td>
+                    <td>
+                        <span style="padding:0.2rem 0.6rem;border-radius:99px;font-size:0.72rem;font-weight:600;background:rgba(143,191,143,0.1);color:var(--clr-brand);border:1px solid var(--clr-border)">
+                            {{ o.status }}
+                        </span>
+                    </td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.message or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Marketplace — TheGarden Labs{% endblock %}
+
+{% block content %}
+<div class="marketplace-hero">
+    <div class="section-header fade-up">
+        <span class="section-header__eyebrow">Marketplace</span>
+        <h1 class="headline section-header__title">Toutes nos offres</h1>
+        <p class="section-header__sub">Des services Discord soignés, à prix juste, livrés rapidement.</p>
+    </div>
+
+    <!-- SERVEURS DISCORD -->
+    <div style="margin-bottom:4rem">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;text-align:left">
+            <span style="font-size:1.5rem">🌐</span>
+            <div>
+                <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--clr-brand);margin-bottom:0.1rem">Catégorie</div>
+                <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:700">Serveurs Discord</h2>
+            </div>
+        </div>
+        <div class="products-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px,1fr))">
+            <div class="product-card fade-up">
+                {% set p = products['server-pack'] %}
+                <div class="product-card__icon">{{ p.icon }}</div>
+                <div>
+                    <div class="product-card__category">{{ p.category }}</div>
+                    <div class="product-card__name">{{ p.name }}</div>
+                    <div class="product-card__tagline">{{ p.tagline }}</div>
+                </div>
+                <div class="product-card__price">{{ p.price }}</div>
+                <div class="product-card__features">
+                    <ul>{% for f in p.features %}<li>{{ f }}</li>{% endfor %}</ul>
+                </div>
+                <div class="product-card__actions">
+                    <a href="{{ url_for('checkout', product_id=p.id) }}" class="btn btn--primary">{{ p.cta }}</a>
+                    <a href="{{ url_for('product', product_id=p.id) }}" class="btn btn--ghost btn--sm">Détails</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTS DISCORD -->
+    <div>
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;text-align:left">
+            <span style="font-size:1.5rem">🤖</span>
+            <div>
+                <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--clr-brand);margin-bottom:0.1rem">Catégorie</div>
+                <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:700">Bots Discord</h2>
+            </div>
+        </div>
+        <div class="products-grid">
+            {% for pid in ['bot-prefait', 'bot-custom'] %}
+            {% set p = products[pid] %}
+            <div class="product-card {% if p.badge == 'Populaire' %}product-card--featured{% endif %} fade-up">
+                {% if p.badge %}
+                <div class="product-card__badge">
+                    <span class="badge {% if p.badge == 'Populaire' %}badge--popular{% else %}badge--brand{% endif %}">{{ p.badge }}</span>
+                </div>
+                {% endif %}
+                <div class="product-card__icon">{{ p.icon }}</div>
+                <div>
+                    <div class="product-card__category">{{ p.category }}</div>
+                    <div class="product-card__name">{{ p.name }}</div>
+                    <div class="product-card__tagline">{{ p.tagline }}</div>
+                </div>
+                <div class="product-card__price">{{ p.price }}</div>
+                <div class="product-card__features">
+                    <ul>{% for f in p.features %}<li>{{ f }}</li>{% endfor %}</ul>
+                </div>
+                <div class="product-card__actions">
+                    <a href="{{ url_for('checkout', product_id=p.id) }}" class="btn btn--primary">{{ p.cta }}</a>
+                    <a href="{{ url_for('product', product_id=p.id) }}" class="btn btn--ghost btn--sm">Détails</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- NOTICE CGV -->
+    <div style="margin-top:4rem;padding:1.25rem 1.5rem;background:rgba(143,191,143,0.05);border:1.5px solid rgba(143,191,143,0.2);border-radius:12px;display:flex;align-items:flex-start;gap:1rem;text-align:left;" class="fade-up">
+        <span style="font-size:1.2rem;margin-top:0.05rem">⚠️</span>
+        <p style="font-size:0.85rem;color:var(--clr-text-muted);line-height:1.65">
+            <strong style="color:var(--clr-text)">Rappel :</strong>
+            En passant commande, vous acceptez automatiquement nos
+            <a href="{{ url_for('cgv') }}" style="color:var(--clr-brand);text-decoration:underline">Conditions de Vente</a>.
+            Merci de les lire avant tout achat. Le paiement s'effectue par virement bancaire.
+        </p>
+    </div>
+</div>
+{% endblock %}

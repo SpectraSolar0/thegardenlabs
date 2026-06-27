@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Commander {{ product.name }} — TheGarden Labs{% endblock %}
+
+{% block content %}
+<div class="checkout-page">
+    <a href="{{ url_for('product', product_id=product.id) }}" style="display:inline-flex;align-items:center;gap:0.5rem;color:var(--clr-text-muted);font-size:0.85rem;margin-bottom:2.5rem;transition:color 0.2s">
+        ← Retour au produit
+    </a>
+
+    <h1 style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;margin-bottom:0.5rem;">Finaliser la commande</h1>
+    <p style="color:var(--clr-text-muted);font-size:0.9rem;margin-bottom:2.5rem;">Remplissez le formulaire ci-dessous. Nous vous contacterons sur Discord pour le virement.</p>
+
+    <div class="checkout-page__grid">
+        <!-- FORM -->
+        <div class="form-card fade-up">
+            <div class="form-title">Vos informations</div>
+            <form method="POST" action="{{ url_for('checkout', product_id=product.id) }}">
+
+                <div class="form-group">
+                    <label for="name">Nom complet <span style="color:var(--clr-brand)">*</span></label>
+                    <input type="text" id="name" name="name" placeholder="Jean Dupont" value="{{ form.get('name', '') }}" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Adresse email <span style="color:var(--clr-brand)">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="jean@exemple.com" value="{{ form.get('email', '') }}" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="discord">Tag Discord <span style="color:var(--clr-text-dim);font-weight:400">(recommandé)</span></label>
+                    <input type="text" id="discord" name="discord" placeholder="votrenom#0000 ou @votrenom" value="{{ form.get('discord', '') }}" />
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Précisions / demandes spécifiques <span style="color:var(--clr-text-dim);font-weight:400">(optionnel)</span></label>
+                    <textarea id="message" name="message" placeholder="Décrivez votre projet, vos besoins particuliers...">{{ form.get('message', '') }}</textarea>
+                </div>
+
+                <!-- CGV OBLIGATOIRES -->
+                <div style="padding:1rem;background:rgba(143,191,143,0.04);border:1.5px solid rgba(143,191,143,0.2);border-radius:10px;margin-bottom:1.25rem;">
+                    <div style="font-size:0.72rem;font-weight:600;color:var(--clr-brand);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem">⚠️ Conditions de Vente — Lecture obligatoire</div>
+                    <p style="font-size:0.82rem;color:var(--clr-text-muted);line-height:1.6;margin-bottom:0.75rem">
+                        Avant de passer commande, vous devez avoir lu et accepté nos
+                        <a href="{{ url_for('cgv') }}" target="_blank" style="color:var(--clr-brand);text-decoration:underline;font-weight:600">Conditions Générales de Vente</a>.
+                        En cochant la case ci-dessous, vous confirmez les avoir lues et les acceptez sans réserve.
+                    </p>
+                    <label class="form-cgv">
+                        <input type="checkbox" name="cgv" id="cgv" required />
+                        <span class="form-cgv-text">
+                            J'ai lu et j'accepte les <a href="{{ url_for('cgv') }}" target="_blank">Conditions Générales de Vente</a> de TheGarden Labs. Je comprends que le paiement s'effectue par virement bancaire et que ma commande sera traitée après réception du virement.
+                        </span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn--primary" style="width:100%;justify-content:center;font-size:1rem;">
+                    ✓ Confirmer la commande
+                </button>
+                <p style="text-align:center;font-size:0.77rem;color:var(--clr-text-dim);margin-top:0.75rem">
+                    Paiement par virement bancaire — Détails communiqués par Discord après confirmation.
+                </p>
+            </form>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary-card fade-up" style="transition-delay:0.1s">
+            <div class="summary-card__title">Récapitulatif</div>
+            <div class="summary-card__product">
+                <div class="summary-card__icon">{{ product.icon }}</div>
+                <div>
+                    <div class="summary-card__name">{{ product.name }}</div>
+                    <div class="summary-card__cat">{{ product.category }}</div>
+                </div>
+            </div>
+            <div class="summary-card__line">
+                <span>Type</span>
+                <span>
+                    {% if product.type == 'monthly' %}Abonnement
+                    {% elif product.type == 'one-time + hosting' %}Unique + hébergement
+                    {% else %}Paiement unique
+                    {% endif %}
+                </span>
+            </div>
+            {% if product.id in ['bot-prefait', 'bot-custom'] %}
+            <div class="summary-card__line" style="color:var(--clr-brand)">
+                <span>🎁 1er mois</span>
+                <span>Offert</span>
+            </div>
+            {% endif %}
+            <div class="summary-card__line">
+                <span>Livraison</span>
+                <span>Sous 24h</span>
+            </div>
+            <div class="summary-card__line">
+                <span>Paiement</span>
+                <span>Virement</span>
+            </div>
+            <div class="summary-card__total">
+                <span>Total</span>
+                <span>{{ product.price }}</span>
+            </div>
+            <div class="virement-info">
+                💳 <strong>Virement bancaire :</strong><br>
+                Après confirmation de votre commande, nous vous enverrons le RIB directement sur Discord. La commande est traitée dès réception du virement.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
