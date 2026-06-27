@@ -382,8 +382,8 @@ h1, h2, h3, h4 {
    ============================================================ */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
     align-items: stretch;
 }
 .product-card {
@@ -793,9 +793,9 @@ h1, h2, h3, h4 {
    MARKETPLACE PAGE HERO
    ============================================================ */
 .marketplace-hero {
-    padding: 10rem 1.5rem 4rem;
+    padding: 9rem 1.5rem 5rem;
     text-align: center;
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -891,6 +891,9 @@ tr:hover td { background: rgba(143,191,143,0.03); }
     .cta-band { padding: 2.5rem 1.5rem; }
     .products-grid { grid-template-columns: 1fr; }
     .steps { grid-template-columns: 1fr; }
+@media (max-width: 860px) {
+    .products-grid { grid-template-columns: 1fr; }
+}
 }
 
 @media (prefers-reduced-motion: reduce) {

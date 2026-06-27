@@ -47,13 +47,13 @@
 </section>
 
 <!-- PRODUITS -->
-<section class="section">
+<section class="section" style="max-width:1100px">
     <div class="section-header fade-up">
         <span class="section-header__eyebrow">Nos offres</span>
         <h2 class="headline section-header__title">Ce que nous cultivons pour vous</h2>
         <p class="section-header__sub">Des solutions claires, des prix justes — rien de superflu.</p>
     </div>
-    <div class="products-grid">
+    <div class="products-grid" style="max-width:1100px;margin:0 auto">
         {% for pid, p in products.items() %}
         <div class="product-card {% if p.badge == 'Populaire' %}product-card--featured{% endif %} fade-up">
             {% if p.badge %}
