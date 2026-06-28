@@ -21,7 +21,7 @@
    Toujours derrière le contenu (z-index négatif) et jamais cliquables. */
 body { position: relative; overflow-x: hidden; }
 .leaf-decor {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
