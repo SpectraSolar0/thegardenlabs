@@ -12,7 +12,7 @@ DB_PATH = "data/orders.db"
 # Config — à modifier ici uniquement
 # ---------------------------------------------------------------------------
 
-DISCORD_INVITE = "https://discord.gg/VOTRE-CODE"  # <-- change ton lien d'invitation ici
+DISCORD_INVITE = "https://discord.gg/PAZHhUSXZj"  # <-- change ton lien d'invitation ici
 
 @app.context_processor
 def inject_globals():
