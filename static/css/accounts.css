@@ -1,0 +1,306 @@
+/* ===========================================================================
+   accounts.css — Styles additionnels pour comptes, dashboard, admin, threads
+   À importer APRÈS main.css dans base.html, ou à fusionner dans main.css.
+   Réutilise les variables CSS déjà définies dans main.css (--clr-*) si elles existent.
+   =========================================================================== */
+
+:root {
+    --acc-bg-card: rgba(255, 255, 255, 0.04);
+    --acc-border: rgba(255, 255, 255, 0.1);
+    --acc-primary: var(--clr-primary, #5865F2);
+    --acc-text: var(--clr-text, #f5f5f5);
+    --acc-text-muted: var(--clr-text-muted, #9a9a9a);
+    --acc-success: #3ba55c;
+    --acc-error: #ed4245;
+    --acc-warning: #faa61a;
+}
+
+/* ---------- Flash messages ---------- */
+.flash-container {
+    max-width: 800px;
+    margin: 1rem auto 0;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.flash {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+.flash--success { background: rgba(59, 165, 92, 0.15); border: 1px solid var(--acc-success); color: var(--acc-success); }
+.flash--error { background: rgba(237, 66, 69, 0.15); border: 1px solid var(--acc-error); color: var(--acc-error); }
+
+/* ---------- Auth pages (login, register, forgot, reset, checkout, support) ---------- */
+.auth-section {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1rem 4rem;
+    min-height: 60vh;
+}
+.auth-card {
+    background: var(--acc-bg-card);
+    border: 1px solid var(--acc-border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 440px;
+    width: 100%;
+}
+.auth-card--center { text-align: center; }
+.auth-card h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+.auth-card__subtitle { color: var(--acc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.auth-card__footer { margin-top: 1.5rem; font-size: 0.9rem; color: var(--acc-text-muted); text-align: center; }
+.auth-card__footer a { color: var(--acc-primary); }
+
+.auth-form { display: flex; flex-direction: column; gap: 0.4rem; }
+.auth-form label { font-size: 0.85rem; color: var(--acc-text-muted); margin-top: 0.6rem; }
+.auth-form input,
+.auth-form select,
+.auth-form textarea {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--acc-border);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    color: var(--acc-text);
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+.auth-form input:focus,
+.auth-form select:focus,
+.auth-form textarea:focus {
+    outline: none;
+    border-color: var(--acc-primary);
+}
+.auth-form .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--acc-text-muted);
+    margin-top: 0.8rem;
+}
+.auth-form .checkbox-label input { width: auto; }
+.btn--block { width: 100%; margin-top: 1.2rem; }
+
+/* ---------- Dashboard (client + admin overview) ---------- */
+.dashboard-section { max-width: 1000px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+.dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.dashboard-header h1 { font-size: 1.8rem; }
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+@media (max-width: 720px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+.dashboard-block {
+    background: var(--acc-bg-card);
+    border: 1px solid var(--acc-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+}
+.dashboard-block__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.dashboard-block__header h2 { font-size: 1.1rem; }
+
+.record-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.record-list__item a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    text-decoration: none;
+    color: var(--acc-text);
+    transition: background 0.15s ease;
+}
+.record-list__item a:hover { background: rgba(255, 255, 255, 0.07); }
+.record-list__main { display: flex; flex-direction: column; gap: 0.2rem; }
+.record-list__price { font-size: 0.8rem; color: var(--acc-text-muted); }
+.record-list__meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+.record-list__date { font-size: 0.75rem; color: var(--acc-text-muted); }
+
+.empty-state { color: var(--acc-text-muted); font-size: 0.9rem; padding: 1rem 0; }
+
+/* ---------- Status badges ---------- */
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.status-badge--pending,
+.status-badge--open { background: rgba(250, 166, 26, 0.15); color: var(--acc-warning); }
+.status-badge--in_progress { background: rgba(88, 101, 242, 0.15); color: var(--acc-primary); }
+.status-badge--completed,
+.status-badge--closed { background: rgba(59, 165, 92, 0.15); color: var(--acc-success); }
+.status-badge--cancelled { background: rgba(237, 66, 69, 0.15); color: var(--acc-error); }
+
+/* ---------- Thread (order / ticket detail with messages) ---------- */
+.thread-section { max-width: 720px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+.back-link { color: var(--acc-text-muted); font-size: 0.85rem; text-decoration: none; display: inline-block; margin-bottom: 1.2rem; }
+.back-link:hover { color: var(--acc-text); }
+
+.thread-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+.thread-header h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.thread-header__meta { font-size: 0.85rem; color: var(--acc-text-muted); }
+
+.status-form { margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem; }
+.status-form select {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--acc-border);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    color: var(--acc-text);
+}
+
+.thread-message {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.8rem;
+}
+.thread-message--initial { border-left: 3px solid var(--acc-text-muted); }
+.thread-message--client { border-left: 3px solid var(--acc-primary); }
+.thread-message--admin { border-left: 3px solid var(--acc-success); background: rgba(59, 165, 92, 0.06); }
+.thread-message__author { display: block; font-size: 0.78rem; color: var(--acc-text-muted); margin-bottom: 0.4rem; }
+.thread-message p { margin: 0; white-space: pre-wrap; line-height: 1.5; }
+
+.thread-reply-form { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.thread-reply-form label { font-size: 0.85rem; color: var(--acc-text-muted); }
+.thread-reply-form textarea {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--acc-border);
+    border-radius: 10px;
+    padding: 0.8rem;
+    color: var(--acc-text);
+    font-family: inherit;
+    resize: vertical;
+}
+.thread-reply-form textarea:focus { outline: none; border-color: var(--acc-primary); }
+.thread-reply-form button { align-self: flex-start; }
+
+/* ---------- Admin nav tabs ---------- */
+.admin-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--acc-border);
+    padding-bottom: 0;
+    flex-wrap: wrap;
+}
+.admin-nav__link {
+    padding: 0.6rem 1rem;
+    color: var(--acc-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-bottom: 2px solid transparent;
+}
+.admin-nav__link:hover { color: var(--acc-text); }
+.admin-nav__link--active { color: var(--acc-text); border-bottom-color: var(--acc-primary); font-weight: 600; }
+
+/* ---------- Stat cards ---------- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+@media (max-width: 720px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.stat-card {
+    background: var(--acc-bg-card);
+    border: 1px solid var(--acc-border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+}
+.stat-card__value { display: block; font-size: 1.8rem; font-weight: 700; color: var(--acc-primary); }
+.stat-card__label { font-size: 0.8rem; color: var(--acc-text-muted); }
+
+/* ---------- Admin tables ---------- */
+.admin-table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.admin-table th {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    color: var(--acc-text-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--acc-border);
+}
+.admin-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--acc-border);
+}
+.admin-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+/* ---------- Generic content sections reused across simple pages ---------- */
+.hero { padding: 4rem 1rem; text-align: center; }
+.hero__inner { max-width: 700px; margin: 0 auto; }
+.hero h1 { font-size: 2.2rem; margin-bottom: 1rem; }
+.hero p { color: var(--acc-text-muted); margin-bottom: 1.5rem; }
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+}
+@media (max-width: 900px) {
+    .products-grid { grid-template-columns: 1fr; }
+}
+.product-card {
+    position: relative;
+    background: var(--acc-bg-card);
+    border: 1px solid var(--acc-border);
+    border-radius: 14px;
+    padding: 1.8rem;
+    text-align: center;
+}
+.product-card__icon { font-size: 2.2rem; display: block; margin-bottom: 0.6rem; }
+.product-card__badge {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    background: var(--acc-primary);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+}
+.product-card h3 { margin-bottom: 0.4rem; }
+.product-card p { color: var(--acc-text-muted); font-size: 0.9rem; margin-bottom: 0.8rem; }
+.product-card strong { display: block; font-size: 1.3rem; margin-bottom: 1rem; }
+
+.marketplace-section { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1rem; }
+.marketplace-section h1 { margin-bottom: 1.5rem; }
+
+.product-detail { max-width: 600px; margin: 0 auto; padding: 3rem 1rem; text-align: center; }
+.product-detail__icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+.product-detail__tagline { color: var(--acc-text-muted); margin-bottom: 0.5rem; }
+.product-detail__price { font-size: 1.8rem; display: block; margin-bottom: 1.5rem; }
+.product-detail__features { list-style: none; padding: 0; text-align: left; margin-bottom: 2rem; }
+.product-detail__features li { padding: 0.4rem 0; color: var(--acc-text-muted); }
+
+.legal-section { max-width: 700px; margin: 0 auto; padding: 3rem 1rem; }
