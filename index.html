@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}TheGarden Labs — Serveurs & Bots Discord Premium{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero__bg"></div>
+    <div class="hero__grid"></div>
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="" class="hero__logo-float" aria-hidden="true" />
+    <div class="hero__inner">
+        <div class="hero__eyebrow fade-up">
+            <span class="hero__eyebrow-dot"></span>
+            Services Discord Premium
+        </div>
+        <h1 class="display hero__title fade-up" style="transition-delay:0.1s">
+            Votre communauté,
+            <span class="line-brand">cultivée avec soin.</span>
+        </h1>
+        <p class="hero__sub fade-up" style="transition-delay:0.2s">
+            Serveurs configurés, bots préfaits ou sur mesure — des outils Discord soignés pour des communautés qui durent.
+        </p>
+        <div class="hero__actions fade-up" style="transition-delay:0.3s">
+            <a href="{{ url_for('marketplace') }}" class="btn btn--primary btn--lg">Explorer les offres</a>
+            <a href="{{ url_for('cgv') }}" class="btn btn--ghost btn--lg">Lire les CGV</a>
+        </div>
+        <div class="hero__stats fade-up" style="transition-delay:0.4s">
+            <div class="hero__stat">
+                <div class="hero__stat-value">3</div>
+                <div class="hero__stat-label">Offres disponibles</div>
+            </div>
+            <div class="hero__stat">
+                <div class="hero__stat-value">1€</div>
+                <div class="hero__stat-label">Prix d'entrée / mois</div>
+            </div>
+            <div class="hero__stat">
+                <div class="hero__stat-value">24h</div>
+                <div class="hero__stat-label">Délai de livraison</div>
+            </div>
+            <div class="hero__stat">
+                <div class="hero__stat-value">100%</div>
+                <div class="hero__stat-label">Sur mesure si besoin</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PRODUITS -->
+<section class="section" style="max-width:1100px">
+    <div class="section-header fade-up">
+        <span class="section-header__eyebrow">Nos offres</span>
+        <h2 class="headline section-header__title">Ce que nous cultivons pour vous</h2>
+        <p class="section-header__sub">Des solutions claires, des prix justes — rien de superflu.</p>
+    </div>
+    <div class="products-grid" style="max-width:1100px;margin:0 auto">
+        {% for pid, p in products.items() %}
+        <div class="product-card {% if p.badge == 'Populaire' %}product-card--featured{% endif %} fade-up">
+            {% if p.badge %}
+            <div class="product-card__badge">
+                <span class="badge {% if p.badge == 'Populaire' %}badge--popular{% else %}badge--brand{% endif %}">{{ p.badge }}</span>
+            </div>
+            {% endif %}
+            <div class="product-card__icon">{{ p.icon }}</div>
+            <div>
+                <div class="product-card__category">{{ p.category }}</div>
+                <div class="product-card__name">{{ p.name }}</div>
+                <div class="product-card__tagline">{{ p.tagline }}</div>
+            </div>
+            <div class="product-card__price">
+                {{ p.price }}
+                {% if p.type == 'monthly' %}<small> / mois</small>{% endif %}
+            </div>
+            <div class="product-card__features">
+                <ul>
+                    {% for feat in p.features %}
+                    <li>{{ feat }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="product-card__actions">
+                <a href="{{ url_for('checkout', product_id=p.id) }}" class="btn btn--primary">{{ p.cta }}</a>
+                <a href="{{ url_for('product', product_id=p.id) }}" class="btn btn--ghost btn--sm">En savoir plus</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- COMMENT ÇA MARCHE -->
+<section class="section" style="background: var(--clr-bg-2); max-width:100%; padding: 6rem 1.5rem;">
+    <div style="max-width:1200px;margin:0 auto">
+        <div class="section-header fade-up">
+            <span class="section-header__eyebrow">Processus</span>
+            <h2 class="headline section-header__title">Commander en 4 étapes simples</h2>
+        </div>
+        <div class="steps">
+            <div class="step fade-up">
+                <div class="step__num">01</div>
+                <div class="step__title">Choisissez votre offre</div>
+                <div class="step__desc">Parcourez notre marketplace et sélectionnez le service qui correspond à vos besoins.</div>
+            </div>
+            <div class="step fade-up" style="transition-delay:0.1s">
+                <div class="step__num">02</div>
+                <div class="step__title">Remplissez le formulaire</div>
+                <div class="step__desc">Indiquez vos informations et acceptez les conditions de vente.</div>
+            </div>
+            <div class="step fade-up" style="transition-delay:0.2s">
+                <div class="step__num">03</div>
+                <div class="step__title">Effectuez le virement</div>
+                <div class="step__desc">Nous vous communiquons le RIB par Discord. Commande confirmée à réception.</div>
+            </div>
+            <div class="step fade-up" style="transition-delay:0.3s">
+                <div class="step__num">04</div>
+                <div class="step__title">Profitez de votre service</div>
+                <div class="step__desc">Livraison sous 24h. Votre communauté Discord prend vie.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CGV NOTICE -->
+<section class="section" style="max-width: 900px;">
+    <div class="cta-band fade-up" style="background: rgba(143,191,143,0.04); border-color: rgba(143,191,143,0.25);">
+        <span style="font-size:2rem;display:block;margin-bottom:1rem;">⚠️</span>
+        <h3 class="subhead cta-band__title">Conditions de Vente obligatoires</h3>
+        <p class="cta-band__sub">
+            La lecture et l'acceptation de nos Conditions de Vente sont <strong>obligatoires</strong> avant tout achat.
+            En passant commande, vous les acceptez automatiquement.
+        </p>
+        <div class="cta-band__actions">
+            <a href="{{ url_for('cgv') }}" class="btn btn--outline">Lire les CGV complètes</a>
+        </div>
+    </div>
+</section>
+
+<!-- SUPPORT NOTICE -->
+<section class="section" style="max-width: 900px;">
+    <div class="cta-band fade-up">
+        <span style="font-size:2rem;display:block;margin-bottom:1rem;">🎫</span>
+        <h3 class="subhead cta-band__title">Une question, un problème ?</h3>
+        <p class="cta-band__sub">
+            Ouvrez un ticket de support directement depuis le site — nous vous répondrons par email ou sur Discord.
+        </p>
+        <div class="cta-band__actions">
+            <a href="{{ url_for('support') }}" class="btn btn--primary">Ouvrir un ticket</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="section" style="max-width: 900px;">
+    <div class="cta-band fade-up">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" style="width:56px;border-radius:12px;margin:0 auto 1.5rem;opacity:0.85;" />
+        <h2 class="headline cta-band__title">Prêt à faire pousser votre serveur ?</h2>
+        <p class="cta-band__sub">Rejoignez TheGarden Labs et donnez vie à votre communauté Discord.</p>
+        <div class="cta-band__actions">
+            <a href="{{ url_for('marketplace') }}" class="btn btn--primary btn--lg">Voir toutes les offres</a>
+            <a href="{{ discord_invite }}" target="_blank" class="btn btn--ghost btn--lg">Nous contacter</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -9,6 +9,17 @@ app.secret_key = "thegarden-labs-secret-2024"
 DB_PATH = "data/orders.db"
 
 # ---------------------------------------------------------------------------
+# Config — à modifier ici uniquement
+# ---------------------------------------------------------------------------
+
+DISCORD_INVITE = "https://discord.gg/VOTRE-CODE"  # <-- change ton lien d'invitation ici
+
+@app.context_processor
+def inject_globals():
+    # Rend ces variables disponibles dans TOUS les templates automatiquement
+    return {"discord_invite": DISCORD_INVITE}
+
+# ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
 
@@ -27,6 +38,19 @@ def init_db():
             message TEXT,
             accepted_cgv INTEGER NOT NULL DEFAULT 0,
             status TEXT DEFAULT 'pending',
+            created_at TEXT NOT NULL
+        )
+    """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS tickets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            discord TEXT,
+            subject TEXT NOT NULL,
+            category TEXT NOT NULL,
+            message TEXT NOT NULL,
+            status TEXT DEFAULT 'open',
             created_at TEXT NOT NULL
         )
     """)
@@ -102,8 +126,16 @@ PRODUCTS = {
     },
 }
 
+TICKET_CATEGORIES = [
+    "Question avant achat",
+    "Suivi de commande",
+    "Problème technique / bot",
+    "Facturation",
+    "Autre",
+]
+
 # ---------------------------------------------------------------------------
-# Routes
+# Routes — Site
 # ---------------------------------------------------------------------------
 
 @app.route("/")
@@ -169,12 +201,88 @@ def success(product_id):
 def cgv():
     return render_template("cgv.html")
 
+# ---------------------------------------------------------------------------
+# Routes — Système de tickets
+# ---------------------------------------------------------------------------
+
+@app.route("/support", methods=["GET", "POST"])
+def support():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        discord = request.form.get("discord", "").strip()
+        category = request.form.get("category", "").strip()
+        subject = request.form.get("subject", "").strip()
+        message = request.form.get("message", "").strip()
+
+        errors = []
+        if not name:
+            errors.append("Le nom est requis.")
+        if not email or "@" not in email:
+            errors.append("Une adresse email valide est requise.")
+        if category not in TICKET_CATEGORIES:
+            errors.append("Merci de choisir une catégorie valide.")
+        if not subject:
+            errors.append("Le sujet est requis.")
+        if not message:
+            errors.append("Le message est requis.")
+
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return render_template("support.html", form=request.form, categories=TICKET_CATEGORIES)
+
+        conn = get_db()
+        cur = conn.execute(
+            """INSERT INTO tickets (name, email, discord, subject, category, message, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (name, email, discord, subject, category, message, datetime.now().isoformat()),
+        )
+        ticket_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for("support_success", ticket_id=ticket_id))
+
+    return render_template("support.html", form={}, categories=TICKET_CATEGORIES)
+
+@app.route("/support/success/<int:ticket_id>")
+def support_success(ticket_id):
+    conn = get_db()
+    ticket = conn.execute("SELECT * FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+    conn.close()
+    if not ticket:
+        return redirect(url_for("support"))
+    return render_template("support_success.html", ticket=ticket)
+
+# ---------------------------------------------------------------------------
+# Routes — Admin
+# ---------------------------------------------------------------------------
+
 @app.route("/admin/orders")
 def admin_orders():
     conn = get_db()
     orders = conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall()
     conn.close()
     return render_template("admin_orders.html", orders=orders)
+
+@app.route("/admin/tickets")
+def admin_tickets():
+    conn = get_db()
+    tickets = conn.execute("SELECT * FROM tickets ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template("admin_tickets.html", tickets=tickets)
+
+@app.route("/admin/tickets/<int:ticket_id>/toggle", methods=["POST"])
+def admin_ticket_toggle(ticket_id):
+    conn = get_db()
+    ticket = conn.execute("SELECT * FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+    if ticket:
+        new_status = "closed" if ticket["status"] == "open" else "open"
+        conn.execute("UPDATE tickets SET status = ? WHERE id = ?", (new_status, ticket_id))
+        conn.commit()
+    conn.close()
+    return redirect(url_for("admin_tickets"))
 
 # ---------------------------------------------------------------------------
 
