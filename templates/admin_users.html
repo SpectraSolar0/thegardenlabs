@@ -43,6 +43,9 @@
                                 {% if u.is_admin %}Retirer admin{% else %}Rendre admin{% endif %}
                             </button>
                         </form>
+                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline;" onsubmit="return confirm('Supprimer définitivement le compte {{ u.email }} ainsi que toutes ses commandes et tickets ? Cette action est irréversible.');">
+                            <button type="submit" class="btn btn--sm" style="color:var(--acc-error);">Supprimer</button>
+                        </form>
                         {% else %}
                         <span style="color:var(--clr-text-muted);font-size:0.85em;">(toi)</span>
                         {% endif %}
