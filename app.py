@@ -995,6 +995,40 @@ init_db()
 ensure_admin_account()
 
 # ---------------------------------------------------------------------------
+# SUPPRESSION TEMPORAIRE D'UN COMPTE — À RETIRER APRÈS UTILISATION
+# Supprime le compte ci-dessous + toutes ses commandes/tickets/messages (cascade).
+# ---------------------------------------------------------------------------
+def _delete_account_by_email(email):
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    if not user:
+        print(f"[SUPPRESSION] Aucun compte trouvé pour {email}")
+        conn.close()
+        return
+
+    uid = user["id"]
+
+    order_ids = [r["id"] for r in conn.execute("SELECT id FROM orders WHERE user_id = ?", (uid,)).fetchall()]
+    for oid in order_ids:
+        conn.execute("DELETE FROM order_messages WHERE order_id = ?", (oid,))
+    conn.execute("DELETE FROM orders WHERE user_id = ?", (uid,))
+
+    ticket_ids = [r["id"] for r in conn.execute("SELECT id FROM tickets WHERE user_id = ?", (uid,)).fetchall()]
+    for tid in ticket_ids:
+        conn.execute("DELETE FROM ticket_messages WHERE ticket_id = ?", (tid,))
+    conn.execute("DELETE FROM tickets WHERE user_id = ?", (uid,))
+
+    # Messages écrits par ce compte sur d'autres commandes/tickets (au cas où, ex: ancien admin)
+    conn.execute("DELETE FROM order_messages WHERE author_id = ?", (uid,))
+    conn.execute("DELETE FROM ticket_messages WHERE author_id = ?", (uid,))
+
+    conn.execute("DELETE FROM users WHERE id = ?", (uid,))
+    conn.commit()
+    conn.close()
+    print(f"[SUPPRESSION] Compte {email} supprimé avec {len(order_ids)} commande(s) et {len(ticket_ids)} ticket(s).")
+
+_delete_account_by_email("leo040016@gmail.com")
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
