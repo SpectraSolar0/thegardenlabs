@@ -21,7 +21,7 @@ DISCORD_INVITE = "https://discord.gg/PAZHhUSXZj"  # <-- change ton lien d'invita
 # Mets sur False pour désactiver complètement la vérification par email à l'inscription
 # (les comptes sont alors automatiquement considérés comme vérifiés, et la connexion
 # est possible immédiatement après l'inscription, sans cliquer sur un lien reçu par email).
-REQUIRE_EMAIL_VERIFICATION = True
+REQUIRE_EMAIL_VERIFICATION = False
 
 # Email de l'admin : le compte créé avec cet email devient automatiquement admin
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@example.com")
