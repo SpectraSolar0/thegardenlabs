@@ -18,6 +18,11 @@ DB_PATH = "data/orders.db"
 
 DISCORD_INVITE = "https://discord.gg/PAZHhUSXZj"  # <-- change ton lien d'invitation ici
 
+# Mets sur False pour désactiver complètement la vérification par email à l'inscription
+# (les comptes sont alors automatiquement considérés comme vérifiés, et la connexion
+# est possible immédiatement après l'inscription, sans cliquer sur un lien reçu par email).
+REQUIRE_EMAIL_VERIFICATION = True
+
 # Email de l'admin : le compte créé avec cet email devient automatiquement admin
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@example.com")
 
@@ -123,6 +128,15 @@ def init_db():
             created_at TEXT NOT NULL,
             FOREIGN KEY (order_id) REFERENCES orders (id),
             FOREIGN KEY (author_id) REFERENCES users (id)
+        )
+    """)
+
+    # Statut de stock par produit (en stock / épuisé), modifiable depuis l'admin
+    # sans avoir besoin de toucher au code ni de redéployer.
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS product_stock (
+            product_id TEXT PRIMARY KEY,
+            in_stock INTEGER NOT NULL DEFAULT 1
         )
     """)
 
@@ -363,6 +377,34 @@ PRODUCTS = {
     },
 }
 
+
+def get_products_with_stock():
+    """Retourne PRODUCTS enrichi du statut de stock (in_stock: True/False) pour chaque produit,
+    lu depuis la base de données. Un produit sans entrée en base est considéré en stock par défaut."""
+    conn = get_db()
+    rows = conn.execute("SELECT product_id, in_stock FROM product_stock").fetchall()
+    conn.close()
+    stock_map = {r["product_id"]: bool(r["in_stock"]) for r in rows}
+
+    products = {}
+    for pid, p in PRODUCTS.items():
+        p_copy = dict(p)
+        p_copy["in_stock"] = stock_map.get(pid, True)
+        products[pid] = p_copy
+    return products
+
+
+def set_product_stock(product_id, in_stock):
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO product_stock (product_id, in_stock) VALUES (?, ?)
+           ON CONFLICT(product_id) DO UPDATE SET in_stock = excluded.in_stock""",
+        (product_id, 1 if in_stock else 0),
+    )
+    conn.commit()
+    conn.close()
+
+
 TICKET_CATEGORIES = [
     "Question avant achat",
     "Suivi de commande",
@@ -377,18 +419,19 @@ TICKET_CATEGORIES = [
 
 @app.route("/")
 def index():
-    return render_template("index.html", products=PRODUCTS)
+    return render_template("index.html", products=get_products_with_stock())
 
 @app.route("/marketplace")
 def marketplace():
-    return render_template("marketplace.html", products=PRODUCTS)
+    return render_template("marketplace.html", products=get_products_with_stock())
 
 @app.route("/product/<product_id>")
 def product(product_id):
-    p = PRODUCTS.get(product_id)
+    products = get_products_with_stock()
+    p = products.get(product_id)
     if not p:
         return redirect(url_for("marketplace"))
-    return render_template("product.html", product=p, products=PRODUCTS)
+    return render_template("product.html", product=p, products=products)
 
 # ---------------------------------------------------------------------------
 # Routes — Auth (inscription, vérification, connexion, déconnexion, reset)
@@ -428,19 +471,23 @@ def register():
         is_admin_account = 1 if email == ADMIN_EMAIL.lower() else 0
         token = make_token()
         expires = (datetime.now() + timedelta(hours=24)).isoformat()
+        is_verified_now = 0 if REQUIRE_EMAIL_VERIFICATION else 1
 
         conn = get_db()
         conn.execute(
             """INSERT INTO users (email, password_hash, discord, is_admin, is_verified, verify_token, verify_token_expires, created_at)
-               VALUES (?, ?, ?, ?, 0, ?, ?, ?)""",
-            (email, generate_password_hash(password), discord, is_admin_account, token, expires, datetime.now().isoformat()),
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (email, generate_password_hash(password), discord, is_admin_account, is_verified_now, token, expires, datetime.now().isoformat()),
         )
         conn.commit()
         conn.close()
 
-        send_verification_email(email, token)
+        if REQUIRE_EMAIL_VERIFICATION:
+            send_verification_email(email, token)
+            flash("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.", "success")
+        else:
+            flash("Compte créé ! Tu peux te connecter dès maintenant.", "success")
 
-        flash("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.", "success")
         return redirect(url_for("login"))
 
     return render_template("register.html", form={})
@@ -601,9 +648,13 @@ def reset_password(token):
 @app.route("/checkout/<product_id>", methods=["GET", "POST"])
 @login_required
 def checkout(product_id):
-    p = PRODUCTS.get(product_id)
+    p = get_products_with_stock().get(product_id)
     if not p:
         return redirect(url_for("marketplace"))
+
+    if not p["in_stock"]:
+        flash("Ce produit est actuellement épuisé et ne peut pas être commandé.", "error")
+        return redirect(url_for("product", product_id=product_id))
 
     user = get_current_user()
 
@@ -855,6 +906,21 @@ def admin_orders():
     orders = conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall()
     conn.close()
     return render_template("admin_orders.html", orders=orders)
+
+
+@app.route("/admin/stock", methods=["GET", "POST"])
+@admin_required
+def admin_stock():
+    if request.method == "POST":
+        # Les cases cochées dans le formulaire représentent les produits EN STOCK ;
+        # tout produit non présent dans request.form est donc considéré épuisé.
+        checked_ids = request.form.getlist("in_stock")
+        for pid in PRODUCTS:
+            set_product_stock(pid, pid in checked_ids)
+        flash("Statut de stock mis à jour.", "success")
+        return redirect(url_for("admin_stock"))
+
+    return render_template("admin_stock.html", products=get_products_with_stock())
 
 
 @app.route("/admin/orders/<int:order_id>", methods=["GET", "POST"])
