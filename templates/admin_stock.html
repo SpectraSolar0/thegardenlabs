@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Stock — Admin{% endblock %}
+{% block content %}
+<section class="dashboard-section">
+    <div class="dashboard-header">
+        <h1>Gestion du stock</h1>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin_dashboard') }}" class="admin-nav__link">Vue d'ensemble</a>
+        <a href="{{ url_for('admin_orders') }}" class="admin-nav__link">Commandes</a>
+        <a href="{{ url_for('admin_tickets') }}" class="admin-nav__link">Tickets</a>
+        <a href="{{ url_for('admin_stock') }}" class="admin-nav__link admin-nav__link--active">Stock</a>
+        <a href="{{ url_for('admin_users') }}" class="admin-nav__link">Utilisateurs</a>
+    </div>
+
+    <p class="auth-card__subtitle" style="margin-bottom:1.5rem;">
+        Décoche un produit pour le marquer comme épuisé. Un produit épuisé reste visible sur le site,
+        mais affiche un badge "Épuisé" et ne peut plus être commandé.
+    </p>
+
+    <form method="POST">
+        <div class="stock-list">
+            {% for pid, p in products.items() %}
+            <label class="stock-item">
+                <input type="checkbox" name="in_stock" value="{{ pid }}" {% if p.in_stock %}checked{% endif %} />
+                <span class="stock-item__icon">{{ p.icon }}</span>
+                <span class="stock-item__info">
+                    <strong>{{ p.name }}</strong>
+                    <span class="record-list__price">{{ p.price }}</span>
+                </span>
+                <span class="status-badge {% if p.in_stock %}status-badge--completed{% else %}status-badge--cancelled{% endif %}">
+                    {% if p.in_stock %}En stock{% else %}Épuisé{% endif %}
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn--primary" style="margin-top:1.5rem;">Enregistrer</button>
+    </form>
+</section>
+{% endblock %}

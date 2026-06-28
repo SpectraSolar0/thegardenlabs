@@ -1,97 +1,26 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
 {% block title %}{{ product.name }} — TheGarden Labs{% endblock %}
-
 {% block content %}
-<div class="product-hero">
-    <!-- BACK -->
-    <a href="{{ url_for('marketplace') }}" style="display:inline-flex;align-items:center;gap:0.5rem;color:var(--clr-text-muted);font-size:0.85rem;margin-bottom:3rem;transition:color 0.2s" class="fade-up">
-        ← Retour à la marketplace
-    </a>
+<section class="product-detail">
+    {% if not product.in_stock %}
+    <span class="status-badge status-badge--cancelled" style="display:inline-block;margin-bottom:1rem;">Épuisé</span>
+    {% endif %}
+    <span class="product-detail__icon">{{ product.icon }}</span>
+    <h1>{{ product.name }}</h1>
+    <p class="product-detail__tagline">{{ product.tagline }}</p>
+    <strong class="product-detail__price">{{ product.price }}</strong>
 
-    <div class="product-hero__grid">
-        <!-- LEFT: INFO -->
-        <div>
-            <div class="product-hero__category fade-up">{{ product.category }}</div>
-            <h1 class="headline product-hero__title fade-up" style="transition-delay:0.05s">{{ product.name }}</h1>
-            <p class="product-hero__tagline fade-up" style="transition-delay:0.1s">{{ product.tagline }}</p>
+    <ul class="product-detail__features">
+        {% for f in product.features %}
+        <li>✓ {{ f }}</li>
+        {% endfor %}
+    </ul>
 
-            <div class="product-hero__features fade-up" style="transition-delay:0.15s">
-                {% for feat in product.features %}
-                <div class="product-hero__feature">
-                    <span class="product-hero__feature-icon">✓</span>
-                    <span>{{ feat }}</span>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- INFO SUPPLÉMENTAIRE SELON PRODUIT -->
-            {% if product.id == 'bot-prefait' %}
-            <div style="margin-top:2rem;padding:1.25rem;background:rgba(143,191,143,0.06);border:1px solid var(--clr-border);border-radius:12px;" class="fade-up">
-                <div style="font-size:0.8rem;font-weight:600;color:var(--clr-brand);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem">🎁 Offre de lancement</div>
-                <p style="font-size:0.88rem;color:var(--clr-text-muted)">Le premier mois est entièrement gratuit. Vous ne payez qu'à partir du deuxième mois. Résiliation possible à tout moment.</p>
-            </div>
-            {% endif %}
-
-            {% if product.id == 'bot-custom' %}
-            <div style="margin-top:2rem;padding:1.25rem;background:rgba(143,191,143,0.06);border:1px solid var(--clr-border);border-radius:12px;" class="fade-up">
-                <div style="font-size:0.8rem;font-weight:600;color:var(--clr-brand);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem">💡 Hébergement variable</div>
-                <p style="font-size:0.88rem;color:var(--clr-text-muted)">Après le premier mois gratuit, le coût d'hébergement est calculé selon les ressources réellement utilisées (CPU, base de données, trafic). Aucune surprise : tarif communiqué à l'avance.</p>
-            </div>
-            {% endif %}
-
-            <!-- AUTRES PRODUITS -->
-            <div style="margin-top:3rem" class="fade-up">
-                <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--clr-text-muted)">Voir aussi</h3>
-                <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-                    {% for pid, p in products.items() %}
-                    {% if p.id != product.id %}
-                    <a href="{{ url_for('product', product_id=p.id) }}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 0.9rem;background:var(--clr-surface);border:1.5px solid var(--clr-border);border-radius:8px;font-size:0.82rem;color:var(--clr-text-muted);transition:border-color 0.2s,color 0.2s">
-                        {{ p.icon }} {{ p.name }}
-                    </a>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT: ORDER CARD -->
-        <div>
-            <div class="order-card fade-up">
-                {% if product.badge %}
-                <div style="margin-bottom:1rem">
-                    <span class="badge {% if product.badge == 'Populaire' %}badge--popular{% else %}badge--brand{% endif %}">{{ product.badge }}</span>
-                </div>
-                {% endif %}
-                <div class="order-card__price">{{ product.price }}</div>
-                <div class="order-card__type">
-                    {% if product.type == 'monthly' %}Abonnement mensuel — résiliable à tout moment
-                    {% elif product.type == 'one-time + hosting' %}Paiement unique + hébergement variable
-                    {% else %}Paiement unique
-                    {% endif %}
-                </div>
-
-                <div class="order-card__info">
-                    <span>🕐 Livraison sous 24h</span>
-                    <span>💳 Paiement par virement bancaire</span>
-                    <span>📋 CGV à accepter avant achat</span>
-                    {% if product.id in ['bot-prefait', 'bot-custom'] %}
-                    <span>🎁 1er mois d'hébergement offert</span>
-                    {% endif %}
-                </div>
-
-                <a href="{{ url_for('checkout', product_id=product.id) }}" class="btn btn--primary" style="width:100%;justify-content:center;margin-bottom:0.75rem">
-                    {{ product.cta }}
-                </a>
-                <a href="{{ url_for('cgv') }}" class="btn btn--ghost btn--sm" style="width:100%;justify-content:center">
-                    Lire les CGV
-                </a>
-
-                <div class="order-card__note">
-                    ⚠️ En passant commande, vous acceptez automatiquement nos Conditions Générales de Vente. Merci de les lire attentivement avant tout achat.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    {% if product.in_stock %}
+    <a href="{{ url_for('checkout', product_id=product.id) }}" class="btn btn--primary btn--lg">{{ product.cta }}</a>
+    {% else %}
+    <button class="btn btn--lg" disabled style="opacity:0.5;cursor:not-allowed;">Produit épuisé</button>
+    <p class="auth-card__subtitle" style="margin-top:0.8rem;">Ce produit n'est pas disponible pour le moment. Reviens bientôt, ou ouvre un ticket pour être informé de sa disponibilité.</p>
+    {% endif %}
+</section>
 {% endblock %}

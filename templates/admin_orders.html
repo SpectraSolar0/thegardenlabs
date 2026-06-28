@@ -1,57 +1,50 @@
-{% extends "base.html" %}
-
-{% block title %}Admin — Commandes{% endblock %}
-
+{% extends 'base.html' %}
+{% block title %}Commandes — Admin{% endblock %}
 {% block content %}
-<div class="admin-page">
-    <h1 class="headline">🌿 Commandes reçues</h1>
-    <p style="color:var(--clr-text-muted);margin-bottom:2rem;font-size:0.9rem">{{ orders|length }} commande(s) au total</p>
-
-    {% if not orders %}
-    <div style="text-align:center;padding:4rem;color:var(--clr-text-muted);background:var(--clr-surface);border-radius:16px;border:1.5px solid var(--clr-border)">
-        Aucune commande pour l'instant.
+<section class="dashboard-section">
+    <div class="dashboard-header">
+        <h1>Toutes les commandes</h1>
     </div>
-    {% else %}
-    <div class="table-wrap">
-        <table>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin_dashboard') }}" class="admin-nav__link">Vue d'ensemble</a>
+        <a href="{{ url_for('admin_orders') }}" class="admin-nav__link admin-nav__link--active">Commandes</a>
+        <a href="{{ url_for('admin_tickets') }}" class="admin-nav__link">Tickets</a>
+        <a href="{{ url_for('admin_stock') }}" class="admin-nav__link">Stock</a>
+        <a href="{{ url_for('admin_users') }}" class="admin-nav__link">Utilisateurs</a>
+    </div>
+
+    {% if orders %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Date</th>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Discord</th>
+                    <th>Client</th>
                     <th>Produit</th>
                     <th>Prix</th>
-                    <th>CGV acceptées</th>
                     <th>Statut</th>
-                    <th>Message</th>
+                    <th>Date</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                {% for o in orders %}
+                {% for order in orders %}
                 <tr>
-                    <td style="color:var(--clr-text-dim)">#{{ o.id }}</td>
-                    <td>{{ o.created_at[:16].replace('T', ' ') }}</td>
-                    <td style="color:var(--clr-text)">{{ o.name }}</td>
-                    <td>{{ o.email }}</td>
-                    <td>{{ o.discord or '—' }}</td>
-                    <td style="color:var(--clr-brand-light)">{{ o.product }}</td>
-                    <td style="color:var(--clr-accent);font-weight:600">{{ o.product_price }}</td>
-                    <td style="color:{% if o.accepted_cgv %}var(--clr-brand){% else %}#ff6b6b{% endif %}">
-                        {{ '✓ Oui' if o.accepted_cgv else '✗ Non' }}
-                    </td>
-                    <td>
-                        <span style="padding:0.2rem 0.6rem;border-radius:99px;font-size:0.72rem;font-weight:600;background:rgba(143,191,143,0.1);color:var(--clr-brand);border:1px solid var(--clr-border)">
-                            {{ o.status }}
-                        </span>
-                    </td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.message or '—' }}</td>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.email }}</td>
+                    <td>{{ order.product }}</td>
+                    <td>{{ order.product_price }}</td>
+                    <td><span class="status-badge status-badge--{{ order.status }}">{{ order.status }}</span></td>
+                    <td>{{ order.created_at[:10] }}</td>
+                    <td><a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn--sm">Ouvrir</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <p class="empty-state">Aucune commande pour le moment.</p>
     {% endif %}
-</div>
+</section>
 {% endblock %}

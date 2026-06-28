@@ -1,69 +1,23 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
 {% block title %}Marketplace — TheGarden Labs{% endblock %}
-
 {% block content %}
-<div style="padding: 9rem 1.5rem 6rem; max-width: 1100px; margin: 0 auto;">
-
-    <!-- HEADER -->
-    <div class="section-header fade-up" style="margin-bottom:3rem">
-        <span class="section-header__eyebrow">Marketplace</span>
-        <h1 class="headline section-header__title">Toutes nos offres</h1>
-        <p class="section-header__sub">Des services Discord soignés, à prix juste, livrés rapidement.</p>
-    </div>
-
-    <!-- TOUTES LES OFFRES EN UNE SEULE GRILLE -->
-    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 3rem;">
-
+<section class="marketplace-section">
+    <h1>Marketplace</h1>
+    <div class="products-grid">
         {% for pid, p in products.items() %}
-        <div class="product-card {% if p.badge == 'Populaire' %}product-card--featured{% endif %} fade-up" style="min-width:0">
-            {% if p.badge %}
-            <div class="product-card__badge">
-                <span class="badge {% if p.badge == 'Populaire' %}badge--popular{% else %}badge--brand{% endif %}">{{ p.badge }}</span>
-            </div>
+        <div class="product-card {% if not p.in_stock %}product-card--soldout{% endif %}">
+            {% if not p.in_stock %}
+            <span class="product-card__badge product-card__badge--soldout">Épuisé</span>
+            {% elif p.badge %}
+            <span class="product-card__badge">{{ p.badge }}</span>
             {% endif %}
-
-            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.25rem">
-                <div class="product-card__icon" style="width:40px;height:40px;font-size:1.2rem;flex-shrink:0">{{ p.icon }}</div>
-                <div>
-                    <div class="product-card__category">{{ p.category }}</div>
-                    <div class="product-card__name" style="font-size:1.1rem">{{ p.name }}</div>
-                </div>
-            </div>
-
-            <div class="product-card__tagline" style="font-size:0.83rem">{{ p.tagline }}</div>
-
-            <div class="product-card__price" style="font-size:1.7rem">
-                {{ p.price }}{% if p.type == 'monthly' %}<small style="font-size:0.75rem;color:var(--clr-text-muted)"> /mois</small>{% endif %}
-            </div>
-
-            <div class="product-card__features" style="flex:1">
-                <ul>
-                    {% for feat in p.features %}
-                    <li style="font-size:0.82rem">{{ feat }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:auto">
-                <a href="{{ url_for('checkout', product_id=p.id) }}" class="btn btn--primary btn--sm" style="text-align:center;justify-content:center">{{ p.cta }}</a>
-                <a href="{{ url_for('product', product_id=p.id) }}" class="btn btn--ghost btn--sm" style="text-align:center;justify-content:center">En savoir plus</a>
-            </div>
+            <span class="product-card__icon">{{ p.icon }}</span>
+            <h3>{{ p.name }}</h3>
+            <p>{{ p.tagline }}</p>
+            <strong>{{ p.price }}</strong>
+            <a href="{{ url_for('product', product_id=pid) }}" class="btn btn--sm btn--primary">{{ p.cta }}</a>
         </div>
         {% endfor %}
-
     </div>
-
-    <!-- NOTICE CGV -->
-    <div style="padding:1rem 1.25rem;background:rgba(143,191,143,0.05);border:1.5px solid rgba(143,191,143,0.2);border-radius:12px;display:flex;align-items:flex-start;gap:0.75rem;" class="fade-up">
-        <span style="font-size:1rem;margin-top:0.1rem;flex-shrink:0">⚠️</span>
-        <p style="font-size:0.82rem;color:var(--clr-text-muted);line-height:1.6">
-            <strong style="color:var(--clr-text)">Rappel :</strong>
-            En passant commande, vous acceptez automatiquement nos
-            <a href="{{ url_for('cgv') }}" style="color:var(--clr-brand);text-decoration:underline">Conditions de Vente</a>.
-            Le paiement s'effectue par virement bancaire.
-        </p>
-    </div>
-
-</div>
+</section>
 {% endblock %}
