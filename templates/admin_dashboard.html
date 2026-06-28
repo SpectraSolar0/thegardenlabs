@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Admin — TheGarden Labs{% endblock %}
+{% block content %}
+<section class="dashboard-section">
+    <div class="dashboard-header">
+        <h1>Tableau de bord admin</h1>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin_dashboard') }}" class="admin-nav__link admin-nav__link--active">Vue d'ensemble</a>
+        <a href="{{ url_for('admin_orders') }}" class="admin-nav__link">Commandes</a>
+        <a href="{{ url_for('admin_tickets') }}" class="admin-nav__link">Tickets</a>
+        <a href="{{ url_for('admin_users') }}" class="admin-nav__link">Utilisateurs</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-card__value">{{ stats.total_orders }}</span>
+            <span class="stat-card__label">Commandes totales</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card__value">{{ stats.pending_orders }}</span>
+            <span class="stat-card__label">Commandes en attente</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card__value">{{ stats.open_tickets }}</span>
+            <span class="stat-card__label">Tickets ouverts</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card__value">{{ stats.total_users }}</span>
+            <span class="stat-card__label">Comptes créés</span>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-block">
+            <div class="dashboard-block__header">
+                <h2>Dernières commandes</h2>
+                <a href="{{ url_for('admin_orders') }}" class="btn btn--sm">Tout voir</a>
+            </div>
+            {% if recent_orders %}
+            <ul class="record-list">
+                {% for order in recent_orders %}
+                <li class="record-list__item">
+                    <a href="{{ url_for('admin_order_detail', order_id=order.id) }}">
+                        <div class="record-list__main">
+                            <strong>{{ order.product }}</strong>
+                            <span class="record-list__price">{{ order.email }}</span>
+                        </div>
+                        <div class="record-list__meta">
+                            <span class="status-badge status-badge--{{ order.status }}">{{ order.status }}</span>
+                            <span class="record-list__date">{{ order.created_at[:10] }}</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state">Aucune commande pour le moment.</p>
+            {% endif %}
+        </div>
+
+        <div class="dashboard-block">
+            <div class="dashboard-block__header">
+                <h2>Derniers tickets</h2>
+                <a href="{{ url_for('admin_tickets') }}" class="btn btn--sm">Tout voir</a>
+            </div>
+            {% if recent_tickets %}
+            <ul class="record-list">
+                {% for ticket in recent_tickets %}
+                <li class="record-list__item">
+                    <a href="{{ url_for('admin_ticket_detail', ticket_id=ticket.id) }}">
+                        <div class="record-list__main">
+                            <strong>{{ ticket.subject }}</strong>
+                            <span class="record-list__price">{{ ticket.email }}</span>
+                        </div>
+                        <div class="record-list__meta">
+                            <span class="status-badge status-badge--{{ ticket.status }}">{{ ticket.status }}</span>
+                            <span class="record-list__date">{{ ticket.created_at[:10] }}</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state">Aucun ticket pour le moment.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

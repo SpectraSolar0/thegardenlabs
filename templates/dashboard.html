@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Mon compte — TheGarden Labs{% endblock %}
+{% block content %}
+<section class="dashboard-section">
+    <div class="dashboard-header">
+        <h1>Mon compte</h1>
+        <a href="{{ url_for('account_settings') }}" class="btn btn--sm">Paramètres</a>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-block">
+            <div class="dashboard-block__header">
+                <h2>Mes commandes</h2>
+                <a href="{{ url_for('marketplace') }}" class="btn btn--sm btn--primary">Nouvelle commande</a>
+            </div>
+
+            {% if orders %}
+            <ul class="record-list">
+                {% for order in orders %}
+                <li class="record-list__item">
+                    <a href="{{ url_for('my_order', order_id=order.id) }}">
+                        <div class="record-list__main">
+                            <strong>{{ order.product }}</strong>
+                            <span class="record-list__price">{{ order.product_price }}</span>
+                        </div>
+                        <div class="record-list__meta">
+                            <span class="status-badge status-badge--{{ order.status }}">{{ order.status }}</span>
+                            <span class="record-list__date">{{ order.created_at[:10] }}</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state">Aucune commande pour le moment.</p>
+            {% endif %}
+        </div>
+
+        <div class="dashboard-block">
+            <div class="dashboard-block__header">
+                <h2>Mes tickets</h2>
+                <a href="{{ url_for('support') }}" class="btn btn--sm btn--primary">Nouveau ticket</a>
+            </div>
+
+            {% if tickets %}
+            <ul class="record-list">
+                {% for ticket in tickets %}
+                <li class="record-list__item">
+                    <a href="{{ url_for('my_ticket', ticket_id=ticket.id) }}">
+                        <div class="record-list__main">
+                            <strong>{{ ticket.subject }}</strong>
+                            <span class="record-list__price">{{ ticket.category }}</span>
+                        </div>
+                        <div class="record-list__meta">
+                            <span class="status-badge status-badge--{{ ticket.status }}">{{ ticket.status }}</span>
+                            <span class="record-list__date">{{ ticket.created_at[:10] }}</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state">Aucun ticket pour le moment.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

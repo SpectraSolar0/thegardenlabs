@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/accounts.css') }}" />
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -25,8 +26,18 @@
             <li><a href="{{ url_for('marketplace') }}" class="nav__link">Marketplace</a></li>
             <li><a href="{{ url_for('support') }}" class="nav__link">Support</a></li>
             <li><a href="{{ url_for('cgv') }}" class="nav__link">CGV</a></li>
+            {% if current_user %}
+            <li><a href="{{ url_for('dashboard') }}" class="nav__link">Mon compte</a></li>
+            {% if current_user.is_admin %}
+            <li><a href="{{ url_for('admin_dashboard') }}" class="nav__link">Admin</a></li>
+            {% endif %}
+            {% endif %}
         </ul>
-        <a href="{{ url_for('marketplace') }}" class="btn btn--sm btn--primary">Voir les offres</a>
+        {% if current_user %}
+        <a href="{{ url_for('logout') }}" class="btn btn--sm btn--primary">Déconnexion</a>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn--sm btn--primary">Connexion</a>
+        {% endif %}
         <button class="nav__burger" id="navBurger" aria-label="Menu">
             <span></span><span></span><span></span>
         </button>
@@ -36,7 +47,15 @@
         <a href="{{ url_for('marketplace') }}" class="nav__mobile-link">Marketplace</a>
         <a href="{{ url_for('support') }}" class="nav__mobile-link">Support</a>
         <a href="{{ url_for('cgv') }}" class="nav__mobile-link">CGV</a>
-        <a href="{{ url_for('marketplace') }}" class="btn btn--primary" style="margin-top:1rem;">Voir les offres</a>
+        {% if current_user %}
+        <a href="{{ url_for('dashboard') }}" class="nav__mobile-link">Mon compte</a>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin_dashboard') }}" class="nav__mobile-link">Admin</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn btn--primary" style="margin-top:1rem;">Déconnexion</a>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn--primary" style="margin-top:1rem;">Connexion</a>
+        {% endif %}
     </div>
 </nav>
 
