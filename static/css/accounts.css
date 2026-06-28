@@ -327,6 +327,24 @@
 }
 .admin-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
+/* ---------- Gestion du stock (admin) ---------- */
+.stock-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.stock-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    background: var(--acc-bg-card);
+    border: 1px solid var(--acc-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.stock-item:hover { border-color: rgba(255, 255, 255, 0.18); }
+.stock-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--acc-primary); cursor: pointer; }
+.stock-item__icon { font-size: 1.6rem; }
+.stock-item__info { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; }
+
 /* ---------- Espacement global sous la nav ---------- */
 /* Garantit une respiration visuelle entre la barre de navigation et le contenu,
    peu importe si .nav est en position fixed/sticky/static dans main.css. */
@@ -359,13 +377,15 @@ body > section:first-of-type,
     border-radius: 14px;
     padding: 1.8rem;
     text-align: center;
-    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
 }
 .product-card:hover {
     transform: translateY(-3px);
     border-color: rgba(255, 255, 255, 0.18);
     background: rgba(255, 255, 255, 0.06);
 }
+.product-card--soldout { opacity: 0.6; }
+.product-card--soldout:hover { transform: none; }
 .product-card__icon { font-size: 2.2rem; display: block; margin-bottom: 0.6rem; }
 .product-card__badge {
     position: absolute;
@@ -377,6 +397,7 @@ body > section:first-of-type,
     padding: 0.2rem 0.6rem;
     border-radius: 999px;
 }
+.product-card__badge--soldout { background: var(--acc-error); }
 .product-card h3 { margin-bottom: 0.4rem; }
 .product-card p { color: var(--acc-text-muted); font-size: 0.9rem; margin-bottom: 0.8rem; }
 .product-card strong { display: block; font-size: 1.3rem; margin-bottom: 1rem; }
