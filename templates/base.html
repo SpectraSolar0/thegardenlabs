@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}TheGarden Labs - Discord Premium Services{% endblock %}</title>
+    <title>{% block title %}TheGarden Labs — Discord Premium Services{% endblock %}</title>
     <meta name="description" content="{% block description %}Serveurs Discord clé en main, bots préfaits et sur mesure. Qualité premium, prix accessibles.{% endblock %}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
     {% block head %}{% endblock %}
 </head>
@@ -23,6 +23,7 @@
         <ul class="nav__links">
             <li><a href="{{ url_for('index') }}" class="nav__link">Accueil</a></li>
             <li><a href="{{ url_for('marketplace') }}" class="nav__link">Marketplace</a></li>
+            <li><a href="{{ url_for('support') }}" class="nav__link">Support</a></li>
             <li><a href="{{ url_for('cgv') }}" class="nav__link">CGV</a></li>
         </ul>
         <a href="{{ url_for('marketplace') }}" class="btn btn--sm btn--primary">Voir les offres</a>
@@ -33,6 +34,7 @@
     <div class="nav__mobile" id="navMobile">
         <a href="{{ url_for('index') }}" class="nav__mobile-link">Accueil</a>
         <a href="{{ url_for('marketplace') }}" class="nav__mobile-link">Marketplace</a>
+        <a href="{{ url_for('support') }}" class="nav__mobile-link">Support</a>
         <a href="{{ url_for('cgv') }}" class="nav__mobile-link">CGV</a>
         <a href="{{ url_for('marketplace') }}" class="btn btn--primary" style="margin-top:1rem;">Voir les offres</a>
     </div>
@@ -71,12 +73,13 @@
         </div>
         <div class="footer__links">
             <h4>Contact</h4>
-            <a href="https://discord.gg/PAZHhUSXZj" target="_blank">Rejoindre le Discord</a>
+            <a href="{{ url_for('support') }}">Ouvrir un ticket</a>
+            <a href="{{ discord_invite }}" target="_blank">Rejoindre le Discord</a>
             <p style="color:var(--clr-text-muted);font-size:0.8rem;margin-top:0.5rem;">Commandes par virement bancaire</p>
         </div>
     </div>
     <div class="footer__bottom">
-        <p>© 2025 TheGarden Labs - Tous droits réservés</p>
+        <p>© 2025 TheGarden Labs — Tous droits réservés</p>
         <p>En passant commande, vous acceptez nos <a href="{{ url_for('cgv') }}">Conditions de Vente</a></p>
     </div>
 </footer>
