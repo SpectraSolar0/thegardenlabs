@@ -36,7 +36,7 @@
 .auth-section {
     display: flex;
     justify-content: center;
-    padding: 3rem 1rem 4rem;
+    padding: 4rem 1.5rem 5rem;
     min-height: 60vh;
 }
 .auth-card {
@@ -46,6 +46,7 @@
     padding: 2.5rem;
     max-width: 440px;
     width: 100%;
+    box-shadow: 0 20px 60px -30px rgba(0, 0, 0, 0.5);
 }
 .auth-card--center { text-align: center; }
 .auth-card h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
@@ -65,6 +66,7 @@
     color: var(--acc-text);
     font-size: 0.95rem;
     font-family: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease;
 }
 .auth-form input:focus,
 .auth-form select:focus,
@@ -84,9 +86,9 @@
 .btn--block { width: 100%; margin-top: 1.2rem; }
 
 /* ---------- Dashboard (client + admin overview) ---------- */
-.dashboard-section { max-width: 1000px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
-.dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.dashboard-header h1 { font-size: 1.8rem; }
+.dashboard-section { max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+.dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.dashboard-header h1 { font-size: 1.9rem; }
 
 .dashboard-grid {
     display: grid;
@@ -253,11 +255,19 @@
 }
 .admin-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
+/* ---------- Espacement global sous la nav ---------- */
+/* Garantit une respiration visuelle entre la barre de navigation et le contenu,
+   peu importe si .nav est en position fixed/sticky/static dans main.css. */
+body > section:first-of-type,
+.nav + section {
+    margin-top: 1.5rem;
+}
+
 /* ---------- Generic content sections reused across simple pages ---------- */
-.hero { padding: 4rem 1rem; text-align: center; }
+.hero { padding: 5rem 1.5rem 4rem; text-align: center; }
 .hero__inner { max-width: 700px; margin: 0 auto; }
-.hero h1 { font-size: 2.2rem; margin-bottom: 1rem; }
-.hero p { color: var(--acc-text-muted); margin-bottom: 1.5rem; }
+.hero h1 { font-size: 2.4rem; line-height: 1.2; margin-bottom: 1rem; letter-spacing: -0.01em; }
+.hero p { color: var(--acc-text-muted); margin-bottom: 1.8rem; font-size: 1.05rem; line-height: 1.6; }
 
 .products-grid {
     display: grid;
@@ -265,10 +275,10 @@
     gap: 1.5rem;
     max-width: 1100px;
     margin: 0 auto;
-    padding: 0 1rem 3rem;
+    padding: 0 1.5rem 3rem;
 }
 @media (max-width: 900px) {
-    .products-grid { grid-template-columns: 1fr; }
+    .products-grid { grid-template-columns: 1fr; padding: 0 1rem 3rem; }
 }
 .product-card {
     position: relative;
@@ -277,6 +287,12 @@
     border-radius: 14px;
     padding: 1.8rem;
     text-align: center;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.product-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
 }
 .product-card__icon { font-size: 2.2rem; display: block; margin-bottom: 0.6rem; }
 .product-card__badge {
@@ -293,10 +309,10 @@
 .product-card p { color: var(--acc-text-muted); font-size: 0.9rem; margin-bottom: 0.8rem; }
 .product-card strong { display: block; font-size: 1.3rem; margin-bottom: 1rem; }
 
-.marketplace-section { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1rem; }
-.marketplace-section h1 { margin-bottom: 1.5rem; }
+.marketplace-section { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem; }
+.marketplace-section h1 { margin-bottom: 2rem; font-size: 2rem; }
 
-.product-detail { max-width: 600px; margin: 0 auto; padding: 3rem 1rem; text-align: center; }
+.product-detail { max-width: 600px; margin: 0 auto; padding: 4rem 1.5rem; text-align: center; }
 .product-detail__icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
 .product-detail__tagline { color: var(--acc-text-muted); margin-bottom: 0.5rem; }
 .product-detail__price { font-size: 1.8rem; display: block; margin-bottom: 1.5rem; }
