@@ -75,6 +75,15 @@ body { position: relative; overflow-x: hidden; }
 .flash--success { background: rgba(59, 165, 92, 0.15); border: 1px solid var(--acc-success); color: var(--acc-success); }
 .flash--error { background: rgba(237, 66, 69, 0.15); border: 1px solid var(--acc-error); color: var(--acc-error); }
 
+/* ---------- Bouton danger (déconnexion) ---------- */
+.btn--danger {
+    color: var(--acc-error);
+    border-color: var(--acc-error);
+}
+.btn--danger:hover {
+    background: rgba(237, 66, 69, 0.1);
+}
+
 /* ---------- Auth pages (login, register, forgot, reset, checkout, support) ---------- */
 .auth-section {
     display: flex;
