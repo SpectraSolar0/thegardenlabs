@@ -176,6 +176,30 @@ body { position: relative; overflow-x: hidden; }
 
 .empty-state { color: var(--acc-text-muted); font-size: 0.9rem; padding: 1rem 0; }
 
+.nav__avatar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid var(--clr-border);
+    background: var(--clr-surface);
+    color: var(--clr-text-muted);
+    transition: border-color var(--transition), color var(--transition);
+    flex-shrink: 0;
+}
+.nav__avatar-btn:hover {
+    border-color: var(--clr-brand);
+    color: var(--clr-text);
+}
+.nav__avatar-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 /* ---------- Status badges ---------- */
 .status-badge {
     display: inline-block;
