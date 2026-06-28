@@ -6,21 +6,21 @@
 
 /* --- TOKENS --- */
 :root {
-    --clr-brand:        #6fa86f;
-    --clr-brand-light:  #8fbf8f;
-    --clr-brand-dark:   #4f8a4f;
-    --clr-bg:           #faf9f6;
-    --clr-bg-2:         #f2f1ec;
-    --clr-bg-3:         #ffffff;
-    --clr-surface:      #ffffff;
-    --clr-surface-2:    #f5f6f2;
-    --clr-border:       #e2e2dc;
-    --clr-border-hover: #c9d8c9;
-    --clr-text:         #232722;
-    --clr-text-muted:   #5c655c;
-    --clr-text-dim:     #8a928a;
+    --clr-brand:        #8fbf8f;
+    --clr-brand-light:  #a8d1a8;
+    --clr-brand-dark:   #6fa86f;
+    --clr-bg:           #1c1f1e;
+    --clr-bg-2:         #222625;
+    --clr-bg-3:         #2a2e2c;
+    --clr-surface:      #242826;
+    --clr-surface-2:    #2a2f2d;
+    --clr-border:       #3a3f3d;
+    --clr-border-hover: #4d5550;
+    --clr-text:         #f0f2f0;
+    --clr-text-muted:   #aab3ae;
+    --clr-text-dim:     #767f7a;
     --clr-white:        #ffffff;
-    --clr-accent:       #4f8a4f;
+    --clr-accent:       #a8d1a8;
 
     --radius-sm:  4px;
     --radius-md:  8px;
@@ -121,8 +121,8 @@ h1, h2, h3, h4 {
     letter-spacing: 0.02em;
     text-transform: uppercase;
 }
-.badge--brand  { background: #eef3ee; color: var(--clr-brand-dark); border: 1px solid var(--clr-border); }
-.badge--popular { background: #e3efe3; color: var(--clr-brand-dark); border: 1px solid var(--clr-brand-light); }
+.badge--brand  { background: rgba(143,191,143,0.1); color: var(--clr-brand-light); border: 1px solid var(--clr-border); }
+.badge--popular { background: rgba(143,191,143,0.16); color: var(--clr-accent); border: 1px solid var(--clr-brand-dark); }
 
 /* ============================================================
    NAVIGATION
@@ -234,8 +234,8 @@ h1, h2, h3, h4 {
     max-width: 360px;
     box-shadow: var(--shadow-card);
 }
-.flash--error   { background: #fdeded; border: 1px solid #e2a3a3; color: #a33d3d; }
-.flash--success { background: #eaf3ea; border: 1px solid var(--clr-brand-light); color: var(--clr-brand-dark); }
+.flash--error   { background: #3a2424; border: 1px solid #7a3a3a; color: #e8a3a3; }
+.flash--success { background: #213426; border: 1px solid var(--clr-brand-dark); color: var(--clr-accent); }
 
 /* ============================================================
    HERO
