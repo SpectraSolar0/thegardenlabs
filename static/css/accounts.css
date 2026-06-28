@@ -5,7 +5,7 @@
    =========================================================================== */
 
 :root {
-    --acc-bg-card: rgba(255, 255, 255, 0.04);
+    --acc-bg-card: #181f1a;
     --acc-border: rgba(255, 255, 255, 0.1);
     --acc-primary: var(--clr-primary, #5865F2);
     --acc-text: var(--clr-text, #f5f5f5);
@@ -16,35 +16,46 @@
 }
 
 /* ---------- Décor de fond : feuilles ambiantes ---------- */
-/* Petites feuilles dessinées en SVG, fixées en arrière-plan, statiques et très discrètes.
-   Ne gênent jamais la lecture (z-index négatif, faible opacité, pointer-events: none). */
+/* Petites feuilles vertes dessinées en SVG, dans le document (pas fixées à l'écran) :
+   elles défilent avec le contenu de la page, comme un motif de fond.
+   Toujours derrière le contenu (z-index négatif) et jamais cliquables. */
+body { position: relative; }
 .leaf-decor {
-    position: fixed;
-    inset: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 2400px; /* couvre largement les pages longues ; le motif se répète visuellement grâce à la dispersion */
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
 }
 .leaf-decor svg {
     position: absolute;
-    opacity: 0.045;
-    color: var(--acc-primary);
+    opacity: 0.09;
+    color: #4f8a5b;
 }
-.leaf-decor svg:nth-child(1) { top: 6%;  left: 5%;  width: 26px; transform: rotate(-22deg); }
-.leaf-decor svg:nth-child(2) { top: 18%; left: 91%; width: 34px; transform: rotate(18deg); }
-.leaf-decor svg:nth-child(3) { top: 38%; left: 8%;  width: 20px; transform: rotate(10deg); }
-.leaf-decor svg:nth-child(4) { top: 52%; left: 95%; width: 28px; transform: rotate(-12deg); }
-.leaf-decor svg:nth-child(5) { top: 68%; left: 3%;  width: 32px; transform: rotate(30deg); }
-.leaf-decor svg:nth-child(6) { top: 81%; left: 90%; width: 22px; transform: rotate(-35deg); }
-.leaf-decor svg:nth-child(7) { top: 92%; left: 14%; width: 24px; transform: rotate(15deg); }
-.leaf-decor svg:nth-child(8) { top: 3%;  left: 48%; width: 18px; transform: rotate(-8deg); }
+.leaf-decor svg:nth-child(1)  { top: 2%;   left: 5%;  width: 26px; transform: rotate(-22deg); }
+.leaf-decor svg:nth-child(2)  { top: 7%;   left: 91%; width: 34px; transform: rotate(18deg); }
+.leaf-decor svg:nth-child(3)  { top: 15%;  left: 8%;  width: 20px; transform: rotate(10deg); }
+.leaf-decor svg:nth-child(4)  { top: 22%;  left: 95%; width: 28px; transform: rotate(-12deg); }
+.leaf-decor svg:nth-child(5)  { top: 30%;  left: 3%;  width: 32px; transform: rotate(30deg); }
+.leaf-decor svg:nth-child(6)  { top: 34%;  left: 90%; width: 22px; transform: rotate(-35deg); }
+.leaf-decor svg:nth-child(7)  { top: 42%;  left: 14%; width: 24px; transform: rotate(15deg); }
+.leaf-decor svg:nth-child(8)  { top: 48%;  left: 48%; width: 18px; transform: rotate(-8deg); }
+.leaf-decor svg:nth-child(9)  { top: 55%;  left: 6%;  width: 30px; transform: rotate(20deg); }
+.leaf-decor svg:nth-child(10) { top: 60%;  left: 93%; width: 24px; transform: rotate(-18deg); }
+.leaf-decor svg:nth-child(11) { top: 68%;  left: 10%; width: 22px; transform: rotate(8deg); }
+.leaf-decor svg:nth-child(12) { top: 73%;  left: 88%; width: 30px; transform: rotate(-25deg); }
+.leaf-decor svg:nth-child(13) { top: 80%;  left: 4%;  width: 26px; transform: rotate(33deg); }
+.leaf-decor svg:nth-child(14) { top: 85%;  left: 50%; width: 18px; transform: rotate(-10deg); }
+.leaf-decor svg:nth-child(15) { top: 90%;  left: 92%; width: 28px; transform: rotate(15deg); }
+.leaf-decor svg:nth-child(16) { top: 96%;  left: 12%; width: 22px; transform: rotate(-30deg); }
 
 @media (max-width: 720px) {
-    /* Sur mobile on garde seulement quelques feuilles discrètes pour ne pas charger l'écran */
-    .leaf-decor svg:nth-child(4),
-    .leaf-decor svg:nth-child(6),
-    .leaf-decor svg:nth-child(7),
-    .leaf-decor svg:nth-child(8) { display: none; }
+    /* Sur mobile on garde une feuille sur deux pour ne pas charger l'écran */
+    .leaf-decor svg:nth-child(even) { display: none; }
 }
 
 /* ---------- Flash messages ---------- */
@@ -306,15 +317,20 @@
 .stock-item__info { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; }
 
 /* ---------- Espacement global sous la nav ---------- */
-/* Garantit une respiration visuelle entre la barre de navigation et le contenu,
-   peu importe si .nav est en position fixed/sticky/static dans main.css. */
-body > section:first-of-type,
-.nav + section {
-    margin-top: 1.5rem;
+/* Garantit une respiration visuelle entre la barre de navigation et le contenu.
+   Ciblage direct des classes de section pour primer sur d'éventuelles règles de main.css. */
+.hero,
+.dashboard-section,
+.marketplace-section,
+.product-detail,
+.auth-section,
+.thread-section,
+.legal-section {
+    margin-top: 2rem !important;
 }
 
 /* ---------- Generic content sections reused across simple pages ---------- */
-.hero { padding: 5rem 1.5rem 4rem; text-align: center; }
+.hero { padding: 3rem 1.5rem 4rem; text-align: center; }
 .hero__inner { max-width: 700px; margin: 0 auto; }
 .hero h1 { font-size: 2.4rem; line-height: 1.2; margin-bottom: 1rem; letter-spacing: -0.01em; }
 .hero p { color: var(--acc-text-muted); margin-bottom: 1.8rem; font-size: 1.05rem; line-height: 1.6; }
@@ -342,7 +358,7 @@ body > section:first-of-type,
 .product-card:hover {
     transform: translateY(-3px);
     border-color: rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.06);
+    background: #1c241e;
 }
 .product-card--soldout { opacity: 0.6; }
 .product-card--soldout:hover { transform: none; }
