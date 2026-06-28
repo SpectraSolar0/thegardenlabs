@@ -3,7 +3,6 @@
 {% block content %}
 <section class="thread-section">
     <a href="{{ url_for('dashboard') }}" class="back-link">← Retour à mon compte</a>
-
     <div class="thread-header">
         <div>
             <h1>{{ order.product }}</h1>
@@ -22,7 +21,24 @@
     <div class="thread-messages">
         {% for m in messages %}
         <div class="thread-message {% if m.is_admin_reply %}thread-message--admin{% else %}thread-message--client{% endif %}">
-            <span class="thread-message__author">{% if m.is_admin_reply %}Équipe TheGarden Labs{% else %}Toi{% endif %} · {{ m.created_at[:16] }}</span>
+            <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+                {% if m.author_avatar %}
+                <img src="{{ url_for('static', filename='avatars/' + m.author_avatar) }}"
+                     style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" />
+                {% else %}
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--clr-surface);border:1px solid var(--clr-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                </div>
+                {% endif %}
+                <span class="thread-message__author">
+                    {% if m.is_admin_reply %}
+                        Équipe TheGarden Labs <span style="color:var(--clr-brand-dark);font-size:0.72rem;">· Admin</span>
+                    {% else %}
+                        {{ m.author_username or m.author_email }}
+                    {% endif %}
+                    · {{ m.created_at[:16].replace('T', ' ') }}
+                </span>
+            </div>
             <p>{{ m.message }}</p>
         </div>
         {% endfor %}
