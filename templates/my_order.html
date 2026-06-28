@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Commande #{{ order.id }} — TheGarden Labs{% endblock %}
+{% block content %}
+<section class="thread-section">
+    <a href="{{ url_for('dashboard') }}" class="back-link">← Retour à mon compte</a>
+
+    <div class="thread-header">
+        <div>
+            <h1>{{ order.product }}</h1>
+            <p class="thread-header__meta">Commande #{{ order.id }} · {{ order.product_price }} · {{ order.created_at[:16] }}</p>
+        </div>
+        <span class="status-badge status-badge--{{ order.status }}">{{ order.status }}</span>
+    </div>
+
+    {% if order.message %}
+    <div class="thread-message thread-message--initial">
+        <span class="thread-message__author">Message initial</span>
+        <p>{{ order.message }}</p>
+    </div>
+    {% endif %}
+
+    <div class="thread-messages">
+        {% for m in messages %}
+        <div class="thread-message {% if m.is_admin_reply %}thread-message--admin{% else %}thread-message--client{% endif %}">
+            <span class="thread-message__author">{% if m.is_admin_reply %}Équipe TheGarden Labs{% else %}Toi{% endif %} · {{ m.created_at[:16] }}</span>
+            <p>{{ m.message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form method="POST" class="thread-reply-form">
+        <label for="message">Ajouter un message</label>
+        <textarea id="message" name="message" rows="4" required placeholder="Écris ton message ici..."></textarea>
+        <button type="submit" class="btn btn--primary">Envoyer</button>
+    </form>
+</section>
+{% endblock %}

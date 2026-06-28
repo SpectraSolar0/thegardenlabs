@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Paramètres du compte — TheGarden Labs{% endblock %}
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <h1>Paramètres du compte</h1>
+        <p class="auth-card__subtitle">{{ user.email }}{% if user.is_admin %} · <strong>Administrateur</strong>{% endif %}</p>
+
+        <form method="POST" class="auth-form">
+            <label for="discord">Pseudo Discord</label>
+            <input type="text" id="discord" name="discord" value="{{ user.discord or '' }}" placeholder="pseudo#0000" />
+
+            <hr style="border-color:rgba(255,255,255,0.1);margin:1.5rem 0;" />
+
+            <label for="new_password">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+            <input type="password" id="new_password" name="new_password" minlength="8" />
+
+            <label for="new_password2">Confirmer le nouveau mot de passe</label>
+            <input type="password" id="new_password2" name="new_password2" minlength="8" />
+
+            <button type="submit" class="btn btn--primary btn--block">Enregistrer</button>
+        </form>
+
+        <p class="auth-card__footer"><a href="{{ url_for('dashboard') }}">← Retour à mon compte</a></p>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Ticket #{{ ticket.id }} — Admin{% endblock %}
+{% block content %}
+<section class="thread-section">
+    <a href="{{ url_for('admin_tickets') }}" class="back-link">← Tous les tickets</a>
+
+    <div class="thread-header">
+        <div>
+            <h1>{{ ticket.subject }}</h1>
+            <p class="thread-header__meta">Ticket #{{ ticket.id }} · {{ ticket.email }} {% if ticket.discord %}· {{ ticket.discord }}{% endif %} · {{ ticket.category }} · {{ ticket.created_at[:16] }}</p>
+        </div>
+        <span class="status-badge status-badge--{{ ticket.status }}">{{ ticket.status }}</span>
+    </div>
+
+    <form method="POST" class="status-form">
+        <input type="hidden" name="action" value="toggle_status" />
+        <button type="submit" class="btn btn--sm">
+            {% if ticket.status == 'open' %}Fermer le ticket{% else %}Réouvrir le ticket{% endif %}
+        </button>
+    </form>
+
+    <div class="thread-message thread-message--initial">
+        <span class="thread-message__author">Message initial du client</span>
+        <p>{{ ticket.message }}</p>
+    </div>
+
+    <div class="thread-messages">
+        {% for m in messages %}
+        <div class="thread-message {% if m.is_admin_reply %}thread-message--admin{% else %}thread-message--client{% endif %}">
+            <span class="thread-message__author">{% if m.is_admin_reply %}Toi (admin){% else %}{{ m.author_email }}{% endif %} · {{ m.created_at[:16] }}</span>
+            <p>{{ m.message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form method="POST" class="thread-reply-form">
+        <input type="hidden" name="action" value="reply" />
+        <label for="message">Répondre au client</label>
+        <textarea id="message" name="message" rows="4" required placeholder="Écris ta réponse ici..."></textarea>
+        <button type="submit" class="btn btn--primary">Envoyer la réponse</button>
+    </form>
+</section>
+{% endblock %}

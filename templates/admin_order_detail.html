@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Commande #{{ order.id }} — Admin{% endblock %}
+{% block content %}
+<section class="thread-section">
+    <a href="{{ url_for('admin_orders') }}" class="back-link">← Toutes les commandes</a>
+
+    <div class="thread-header">
+        <div>
+            <h1>{{ order.product }}</h1>
+            <p class="thread-header__meta">Commande #{{ order.id }} · {{ order.email }} {% if order.discord %}· {{ order.discord }}{% endif %} · {{ order.created_at[:16] }}</p>
+        </div>
+        <span class="status-badge status-badge--{{ order.status }}">{{ order.status }}</span>
+    </div>
+
+    <form method="POST" class="status-form">
+        <input type="hidden" name="action" value="status" />
+        <label for="status">Changer le statut :</label>
+        <select name="status" id="status" onchange="this.form.submit()">
+            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>En attente</option>
+            <option value="in_progress" {% if order.status == 'in_progress' %}selected{% endif %}>En cours</option>
+            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Terminée</option>
+            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Annulée</option>
+        </select>
+    </form>
+
+    {% if order.message %}
+    <div class="thread-message thread-message--initial">
+        <span class="thread-message__author">Message initial du client</span>
+        <p>{{ order.message }}</p>
+    </div>
+    {% endif %}
+
+    <div class="thread-messages">
+        {% for m in messages %}
+        <div class="thread-message {% if m.is_admin_reply %}thread-message--admin{% else %}thread-message--client{% endif %}">
+            <span class="thread-message__author">{% if m.is_admin_reply %}Toi (admin){% else %}{{ m.author_email }}{% endif %} · {{ m.created_at[:16] }}</span>
+            <p>{{ m.message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form method="POST" class="thread-reply-form">
+        <input type="hidden" name="action" value="reply" />
+        <label for="message">Répondre au client</label>
+        <textarea id="message" name="message" rows="4" required placeholder="Écris ta réponse ici..."></textarea>
+        <button type="submit" class="btn btn--primary">Envoyer la réponse</button>
+    </form>
+</section>
+{% endblock %}

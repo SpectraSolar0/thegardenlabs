@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Créer un compte — TheGarden Labs{% endblock %}
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <h1>Créer un compte</h1>
+        <p class="auth-card__subtitle">Nécessaire pour commander ou ouvrir un ticket.</p>
+
+        <form method="POST" class="auth-form">
+            <label for="email">Adresse email</label>
+            <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required placeholder="toi@exemple.com" />
+
+            <label for="discord">Pseudo Discord (optionnel)</label>
+            <input type="text" id="discord" name="discord" value="{{ form.get('discord', '') }}" placeholder="pseudo#0000" />
+
+            <label for="password">Mot de passe (8 caractères minimum)</label>
+            <input type="password" id="password" name="password" required minlength="8" />
+
+            <label for="password2">Confirmer le mot de passe</label>
+            <input type="password" id="password2" name="password2" required minlength="8" />
+
+            <button type="submit" class="btn btn--primary btn--block">Créer mon compte</button>
+        </form>
+
+        <p class="auth-card__footer">Déjà un compte ? <a href="{{ url_for('login') }}">Se connecter</a></p>
+    </div>
+</section>
+{% endblock %}

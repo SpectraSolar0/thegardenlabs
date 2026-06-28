@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Connexion — TheGarden Labs{% endblock %}
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <h1>Connexion</h1>
+
+        <form method="POST" class="auth-form">
+            <label for="email">Adresse email</label>
+            <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required />
+
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" required />
+
+            <button type="submit" class="btn btn--primary btn--block">Se connecter</button>
+        </form>
+
+        {% if unverified_email %}
+        <form method="POST" action="{{ url_for('resend_verification') }}" style="margin-top:1rem;">
+            <input type="hidden" name="email" value="{{ unverified_email }}" />
+            <button type="submit" class="btn btn--sm">Renvoyer l'email de confirmation</button>
+        </form>
+        {% endif %}
+
+        <p class="auth-card__footer">
+            <a href="{{ url_for('forgot_password') }}">Mot de passe oublié ?</a>
+        </p>
+        <p class="auth-card__footer">Pas encore de compte ? <a href="{{ url_for('register') }}">S'inscrire</a></p>
+    </div>
+</section>
+{% endblock %}

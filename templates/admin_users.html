@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Utilisateurs — Admin{% endblock %}
+{% block content %}
+<section class="dashboard-section">
+    <div class="dashboard-header">
+        <h1>Utilisateurs</h1>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin_dashboard') }}" class="admin-nav__link">Vue d'ensemble</a>
+        <a href="{{ url_for('admin_orders') }}" class="admin-nav__link">Commandes</a>
+        <a href="{{ url_for('admin_tickets') }}" class="admin-nav__link">Tickets</a>
+        <a href="{{ url_for('admin_users') }}" class="admin-nav__link admin-nav__link--active">Utilisateurs</a>
+    </div>
+
+    {% if users %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Email</th>
+                    <th>Discord</th>
+                    <th>Vérifié</th>
+                    <th>Rôle</th>
+                    <th>Inscrit le</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.discord or '—' }}</td>
+                    <td>{% if u.is_verified %}✅{% else %}❌{% endif %}</td>
+                    <td>{% if u.is_admin %}<strong>Admin</strong>{% else %}Client{% endif %}</td>
+                    <td>{{ u.created_at[:10] }}</td>
+                    <td>
+                        {% if u.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('admin_toggle_admin', user_id=u.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn--sm">
+                                {% if u.is_admin %}Retirer admin{% else %}Rendre admin{% endif %}
+                            </button>
+                        </form>
+                        {% else %}
+                        <span style="color:var(--clr-text-muted);font-size:0.85em;">(toi)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-state">Aucun utilisateur pour le moment.</p>
+    {% endif %}
+</section>
+{% endblock %}
