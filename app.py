@@ -284,8 +284,11 @@ def admin_ticket_toggle(ticket_id):
     conn.close()
     return redirect(url_for("admin_tickets"))
 
+# Initialise la base de données dès le chargement du module
+# (nécessaire pour Gunicorn/Render qui n'exécute pas le bloc __main__)
+init_db()
+
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True, port=5000)
