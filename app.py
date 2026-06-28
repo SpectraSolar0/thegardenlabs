@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 import sqlite3
 import os
 import secrets
+import uuid
 import requests
 from datetime import datetime, timedelta
 from functools import wraps
@@ -11,27 +12,23 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "thegarden-labs-secret-2024")
 
 DB_PATH = "data/orders.db"
+UPLOAD_FOLDER = "static/avatars"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ---------------------------------------------------------------------------
 # Config — à modifier ici uniquement
 # ---------------------------------------------------------------------------
 
-DISCORD_INVITE = "https://discord.gg/PAZHhUSXZj"  # <-- change ton lien d'invitation ici
+DISCORD_INVITE = "https://discord.gg/PAZHhUSXZj"
 
-# Mets sur False pour désactiver complètement la vérification par email à l'inscription
-# (les comptes sont alors automatiquement considérés comme vérifiés, et la connexion
-# est possible immédiatement après l'inscription, sans cliquer sur un lien reçu par email).
 REQUIRE_EMAIL_VERIFICATION = False
 
-# Email de l'admin : le compte créé avec cet email devient automatiquement admin
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@example.com")
 
-# URL de base du site, utilisée dans les emails (liens de vérification, etc.)
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:5000")
 
-# Config Resend (API HTTPS — fonctionne sur Render, contrairement à SMTP qui peut être bloqué)
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")  # ta clé API Resend (commence par re_)
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "")  # ex: noreply@tondomaine.com (domaine vérifié sur Resend)
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "")
 RESEND_FROM_NAME = os.environ.get("RESEND_FROM_NAME", "TheGarden Labs")
 
 EMAIL_ENABLED = bool(RESEND_API_KEY and RESEND_FROM_EMAIL)
@@ -39,7 +36,6 @@ EMAIL_ENABLED = bool(RESEND_API_KEY and RESEND_FROM_EMAIL)
 
 @app.context_processor
 def inject_globals():
-    # Rend ces variables disponibles dans TOUS les templates automatiquement
     return {
         "discord_invite": DISCORD_INVITE,
         "current_user": get_current_user(),
@@ -103,7 +99,6 @@ def init_db():
         )
     """)
 
-    # Fil de discussion pour les tickets (réponses client <-> admin)
     c.execute("""
         CREATE TABLE IF NOT EXISTS ticket_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -117,7 +112,6 @@ def init_db():
         )
     """)
 
-    # Fil de discussion pour les commandes (réponses client <-> admin)
     c.execute("""
         CREATE TABLE IF NOT EXISTS order_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -131,8 +125,6 @@ def init_db():
         )
     """)
 
-    # Statut de stock par produit (en stock / épuisé), modifiable depuis l'admin
-    # sans avoir besoin de toucher au code ni de redéployer.
     c.execute("""
         CREATE TABLE IF NOT EXISTS product_stock (
             product_id TEXT PRIMARY KEY,
@@ -142,9 +134,14 @@ def init_db():
 
     conn.commit()
 
-    # Migration douce : si d'anciennes tables orders/tickets existaient sans user_id,
-    # SQLite ne permet pas d'ALTER facilement avec contrainte NOT NULL, donc on vérifie juste
-    # que les colonnes existent (pour les bases déjà migrées par une version précédente).
+    # Migration douce : ajout username et avatar si absents
+    for col, definition in [("username", "TEXT"), ("avatar", "TEXT")]:
+        try:
+            conn.execute(f"ALTER TABLE users ADD COLUMN {col} {definition}")
+            conn.commit()
+        except Exception:
+            pass
+
     conn.close()
 
 
@@ -155,10 +152,6 @@ def get_db():
 
 
 def ensure_admin_account():
-    """S'assure qu'un compte admin existe pour ADMIN_EMAIL.
-    Si le compte existe déjà (créé via inscription normale), il est promu admin.
-    Sinon, rien n'est créé automatiquement : la personne doit s'inscrire avec cet email,
-    et elle sera automatiquement promue admin + vérifiée à l'inscription."""
     conn = get_db()
     conn.execute(
         "UPDATE users SET is_admin = 1, is_verified = 1 WHERE email = ?",
@@ -215,10 +208,6 @@ def make_token():
 # ---------------------------------------------------------------------------
 
 def send_email(to_email, subject, html_body):
-    """Envoie un email via l'API Resend (HTTPS, pas bloqué par les hébergeurs comme SMTP peut l'être).
-    Si Resend n'est pas configuré, le contenu est simplement affiché dans les logs (utile en dev local).
-    Le timeout est volontairement court : un problème réseau ne doit jamais faire planter la requête
-    en cours (inscription, réponse à un ticket, etc.) — l'email est "best effort"."""
     if not EMAIL_ENABLED:
         print(f"--- [EMAIL NON ENVOYÉ — Resend non configuré] ---")
         print(f"À: {to_email}\nSujet: {subject}\n{html_body}")
@@ -238,7 +227,7 @@ def send_email(to_email, subject, html_body):
                 "subject": subject,
                 "html": html_body,
             },
-            timeout=8,  # court et volontaire : on ne bloque jamais longtemps une requête utilisateur
+            timeout=8,
         )
         if response.status_code >= 400:
             print(f"Erreur Resend ({response.status_code}) pour {to_email}: {response.text}")
@@ -278,7 +267,6 @@ def send_reset_email(user_email, token):
 
 
 def send_new_reply_notification_to_client(user_email, kind, ref_id, subject_text):
-    """kind = 'ticket' ou 'order'"""
     if kind == "ticket":
         link = f"{SITE_URL}{url_for('my_ticket', ticket_id=ref_id)}"
         label = "ticket"
@@ -296,7 +284,6 @@ def send_new_reply_notification_to_client(user_email, kind, ref_id, subject_text
 
 
 def send_new_message_notification_to_admins(kind, ref_id, subject_text, from_email):
-    """Notifie l'admin (ADMIN_EMAIL) qu'un client a écrit / répondu."""
     if kind == "ticket":
         link = f"{SITE_URL}{url_for('admin_ticket_detail', ticket_id=ref_id)}"
         label = "ticket"
@@ -314,7 +301,7 @@ def send_new_message_notification_to_admins(kind, ref_id, subject_text, from_ema
 
 
 # ---------------------------------------------------------------------------
-# Products config — MODIFIABLE FACILEMENT
+# Products config
 # ---------------------------------------------------------------------------
 
 PRODUCTS = {
@@ -379,13 +366,10 @@ PRODUCTS = {
 
 
 def get_products_with_stock():
-    """Retourne PRODUCTS enrichi du statut de stock (in_stock: True/False) pour chaque produit,
-    lu depuis la base de données. Un produit sans entrée en base est considéré en stock par défaut."""
     conn = get_db()
     rows = conn.execute("SELECT product_id, in_stock FROM product_stock").fetchall()
     conn.close()
     stock_map = {r["product_id"]: bool(r["in_stock"]) for r in rows}
-
     products = {}
     for pid, p in PRODUCTS.items():
         p_copy = dict(p)
@@ -434,7 +418,7 @@ def product(product_id):
     return render_template("product.html", product=p, products=products)
 
 # ---------------------------------------------------------------------------
-# Routes — Auth (inscription, vérification, connexion, déconnexion, reset)
+# Routes — Auth
 # ---------------------------------------------------------------------------
 
 @app.route("/register", methods=["GET", "POST"])
@@ -447,10 +431,15 @@ def register():
         password = request.form.get("password", "")
         password2 = request.form.get("password2", "")
         discord = request.form.get("discord", "").strip()
+        username = request.form.get("username", "").strip()
 
         errors = []
         if not email or "@" not in email:
             errors.append("Une adresse email valide est requise.")
+        if not username or len(username) < 2:
+            errors.append("Un pseudo d'au moins 2 caractères est requis.")
+        if len(username) > 32:
+            errors.append("Le pseudo ne peut pas dépasser 32 caractères.")
         if len(password) < 8:
             errors.append("Le mot de passe doit contenir au moins 8 caractères.")
         if password != password2:
@@ -459,8 +448,11 @@ def register():
         if not errors:
             conn = get_db()
             existing = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+            existing_username = conn.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
             if existing:
                 errors.append("Un compte existe déjà avec cet email.")
+            if existing_username:
+                errors.append("Ce pseudo est déjà pris.")
             conn.close()
 
         if errors:
@@ -475,9 +467,9 @@ def register():
 
         conn = get_db()
         conn.execute(
-            """INSERT INTO users (email, password_hash, discord, is_admin, is_verified, verify_token, verify_token_expires, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (email, generate_password_hash(password), discord, is_admin_account, is_verified_now, token, expires, datetime.now().isoformat()),
+            """INSERT INTO users (email, password_hash, discord, username, is_admin, is_verified, verify_token, verify_token_expires, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (email, generate_password_hash(password), discord, username, is_admin_account, is_verified_now, token, expires, datetime.now().isoformat()),
         )
         conn.commit()
         conn.close()
@@ -536,7 +528,6 @@ def resend_verification():
         send_verification_email(email, token)
 
     conn.close()
-    # Message volontairement neutre, qu'un compte existe ou non (évite de révéler les emails enregistrés)
     flash("Si ce compte existe et n'est pas encore vérifié, un nouvel email vient d'être envoyé.", "success")
     return redirect(url_for("login"))
 
@@ -563,7 +554,7 @@ def login():
             return render_template("login.html", form=request.form, unverified_email=email)
 
         session["user_id"] = user["id"]
-        flash(f"Bienvenue, {email} !", "success")
+        flash(f"Bienvenue, {user['username'] or email} !", "success")
 
         next_url = request.args.get("next")
         if next_url:
@@ -642,7 +633,7 @@ def reset_password(token):
 
 
 # ---------------------------------------------------------------------------
-# Routes — Checkout (commandes) — nécessite un compte
+# Routes — Checkout
 # ---------------------------------------------------------------------------
 
 @app.route("/checkout/<product_id>", methods=["GET", "POST"])
@@ -676,7 +667,7 @@ def checkout(product_id):
         cur = conn.execute(
             """INSERT INTO orders (user_id, name, email, discord, product, product_price, message, accepted_cgv, created_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (user["id"], user["email"].split("@")[0], user["email"], discord or user["discord"], p["name"], p["price"], message, 1, datetime.now().isoformat()),
+            (user["id"], user["username"] or user["email"].split("@")[0], user["email"], discord or user["discord"], p["name"], p["price"], message, 1, datetime.now().isoformat()),
         )
         order_id = cur.lastrowid
         conn.commit()
@@ -688,18 +679,20 @@ def checkout(product_id):
 
     return render_template("checkout.html", product=p, form={"discord": user["discord"] or ""})
 
+
 @app.route("/success/<product_id>")
 @login_required
 def success(product_id):
     p = PRODUCTS.get(product_id)
     return render_template("success.html", product=p)
 
+
 @app.route("/cgv")
 def cgv():
     return render_template("cgv.html")
 
 # ---------------------------------------------------------------------------
-# Routes — Système de tickets — nécessite un compte
+# Routes — Tickets
 # ---------------------------------------------------------------------------
 
 @app.route("/support", methods=["GET", "POST"])
@@ -730,7 +723,7 @@ def support():
         cur = conn.execute(
             """INSERT INTO tickets (user_id, name, email, discord, subject, category, message, created_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (user["id"], user["email"].split("@")[0], user["email"], discord or user["discord"], subject, category, message, datetime.now().isoformat()),
+            (user["id"], user["username"] or user["email"].split("@")[0], user["email"], discord or user["discord"], subject, category, message, datetime.now().isoformat()),
         )
         ticket_id = cur.lastrowid
         conn.commit()
@@ -741,6 +734,7 @@ def support():
         return redirect(url_for("support_success", ticket_id=ticket_id))
 
     return render_template("support.html", form={"discord": user["discord"] or ""}, categories=TICKET_CATEGORIES)
+
 
 @app.route("/support/success/<int:ticket_id>")
 @login_required
@@ -754,7 +748,7 @@ def support_success(ticket_id):
 
 
 # ---------------------------------------------------------------------------
-# Routes — Espace client ("Mon compte")
+# Routes — Espace client
 # ---------------------------------------------------------------------------
 
 @app.route("/account")
@@ -798,7 +792,8 @@ def my_order(order_id):
             send_new_message_notification_to_admins("order", order_id, order["product"], user["email"])
 
     messages = conn.execute(
-        """SELECT order_messages.*, users.email as author_email
+        """SELECT order_messages.*, users.email as author_email,
+                  users.username as author_username, users.avatar as author_avatar
            FROM order_messages JOIN users ON order_messages.author_id = users.id
            WHERE order_id = ? ORDER BY created_at ASC""",
         (order_id,),
@@ -830,13 +825,13 @@ def my_ticket(ticket_id):
                    VALUES (?, ?, 0, ?, ?)""",
                 (ticket_id, user["id"], message, datetime.now().isoformat()),
             )
-            # Réouverture automatique si le client répond à un ticket fermé
             conn.execute("UPDATE tickets SET status = 'open' WHERE id = ?", (ticket_id,))
             conn.commit()
             send_new_message_notification_to_admins("ticket", ticket_id, ticket["subject"], user["email"])
 
     messages = conn.execute(
-        """SELECT ticket_messages.*, users.email as author_email
+        """SELECT ticket_messages.*, users.email as author_email,
+                  users.username as author_username, users.avatar as author_avatar
            FROM ticket_messages JOIN users ON ticket_messages.author_id = users.id
            WHERE ticket_id = ? ORDER BY created_at ASC""",
         (ticket_id,),
@@ -852,28 +847,85 @@ def account_settings():
     user = get_current_user()
 
     if request.method == "POST":
-        discord = request.form.get("discord", "").strip()
-        new_password = request.form.get("new_password", "")
-        new_password2 = request.form.get("new_password2", "")
-
+        action = request.form.get("action", "profile")
         conn = get_db()
-        conn.execute("UPDATE users SET discord = ? WHERE id = ?", (discord, user["id"]))
+        errors = []
 
-        if new_password:
-            if len(new_password) < 8:
-                flash("Le nouveau mot de passe doit contenir au moins 8 caractères.", "error")
+        if action == "profile":
+            username = request.form.get("username", "").strip()
+            discord = request.form.get("discord", "").strip()
+
+            if not username or len(username) < 2:
+                errors.append("Le pseudo doit contenir au moins 2 caractères.")
+            elif username != user["username"]:
+                existing = conn.execute(
+                    "SELECT id FROM users WHERE username = ? AND id != ?", (username, user["id"])
+                ).fetchone()
+                if existing:
+                    errors.append("Ce pseudo est déjà pris.")
+
+            avatar_file = request.files.get("avatar")
+            if avatar_file and avatar_file.filename:
+                ext = avatar_file.filename.rsplit(".", 1)[-1].lower()
+                if ext not in ("png", "jpg", "jpeg", "gif", "webp"):
+                    errors.append("Format d'image non supporté (png, jpg, gif, webp).")
+                else:
+                    data = avatar_file.read()
+                    if len(data) > 2 * 1024 * 1024:
+                        errors.append("L'image ne doit pas dépasser 2 Mo.")
+                    else:
+                        filename = f"{user['id']}_{uuid.uuid4().hex[:8]}.{ext}"
+                        with open(os.path.join(UPLOAD_FOLDER, filename), "wb") as f:
+                            f.write(data)
+                        conn.execute("UPDATE users SET avatar = ? WHERE id = ?", (filename, user["id"]))
+
+            if not errors:
+                conn.execute(
+                    "UPDATE users SET username = ?, discord = ? WHERE id = ?",
+                    (username, discord, user["id"])
+                )
+                conn.commit()
+                flash("Profil mis à jour.", "success")
+
+        elif action == "email":
+            new_email = request.form.get("new_email", "").strip().lower()
+            current_pw = request.form.get("current_password_email", "")
+            if not new_email or "@" not in new_email:
+                errors.append("Email invalide.")
+            elif not check_password_hash(user["password_hash"], current_pw):
+                errors.append("Mot de passe incorrect.")
+            else:
+                existing = conn.execute(
+                    "SELECT id FROM users WHERE email = ? AND id != ?", (new_email, user["id"])
+                ).fetchone()
+                if existing:
+                    errors.append("Cet email est déjà utilisé.")
+                else:
+                    conn.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, user["id"]))
+                    conn.commit()
+                    flash("Adresse email mise à jour.", "success")
+
+        elif action == "password":
+            current_pw = request.form.get("current_password", "")
+            new_password = request.form.get("new_password", "")
+            new_password2 = request.form.get("new_password2", "")
+            if not check_password_hash(user["password_hash"], current_pw):
+                errors.append("Mot de passe actuel incorrect.")
+            elif len(new_password) < 8:
+                errors.append("Le nouveau mot de passe doit contenir au moins 8 caractères.")
             elif new_password != new_password2:
-                flash("Les nouveaux mots de passe ne correspondent pas.", "error")
+                errors.append("Les mots de passe ne correspondent pas.")
             else:
                 conn.execute(
                     "UPDATE users SET password_hash = ? WHERE id = ?",
-                    (generate_password_hash(new_password), user["id"]),
+                    (generate_password_hash(new_password), user["id"])
                 )
+                conn.commit()
                 flash("Mot de passe mis à jour.", "success")
 
-        conn.commit()
+        for e in errors:
+            flash(e, "error")
         conn.close()
-        flash("Profil mis à jour.", "success")
         return redirect(url_for("account_settings"))
 
     return render_template("account_settings.html", user=user)
@@ -912,14 +964,11 @@ def admin_orders():
 @admin_required
 def admin_stock():
     if request.method == "POST":
-        # Les cases cochées dans le formulaire représentent les produits EN STOCK ;
-        # tout produit non présent dans request.form est donc considéré épuisé.
         checked_ids = request.form.getlist("in_stock")
         for pid in PRODUCTS:
             set_product_stock(pid, pid in checked_ids)
         flash("Statut de stock mis à jour.", "success")
         return redirect(url_for("admin_stock"))
-
     return render_template("admin_stock.html", products=get_products_with_stock())
 
 
@@ -956,7 +1005,8 @@ def admin_order_detail(order_id):
                 conn.commit()
 
     messages = conn.execute(
-        """SELECT order_messages.*, users.email as author_email
+        """SELECT order_messages.*, users.email as author_email,
+                  users.username as author_username, users.avatar as author_avatar
            FROM order_messages JOIN users ON order_messages.author_id = users.id
            WHERE order_id = ? ORDER BY created_at ASC""",
         (order_id,),
@@ -1008,7 +1058,8 @@ def admin_ticket_detail(ticket_id):
             conn.commit()
 
     messages = conn.execute(
-        """SELECT ticket_messages.*, users.email as author_email
+        """SELECT ticket_messages.*, users.email as author_email,
+                  users.username as author_username, users.avatar as author_avatar
            FROM ticket_messages JOIN users ON ticket_messages.author_id = users.id
            WHERE ticket_id = ? ORDER BY created_at ASC""",
         (ticket_id,),
@@ -1062,8 +1113,6 @@ def admin_toggle_admin(user_id):
 @app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
 @admin_required
 def admin_delete_user(user_id):
-    """Supprime un compte utilisateur ainsi que toutes ses commandes, tickets
-    et messages associés (suppression en cascade)."""
     current = get_current_user()
     if current["id"] == user_id:
         flash("Tu ne peux pas supprimer ton propre compte depuis cette page.", "error")
@@ -1088,10 +1137,8 @@ def admin_delete_user(user_id):
         conn.execute("DELETE FROM ticket_messages WHERE ticket_id = ?", (tid,))
     conn.execute("DELETE FROM tickets WHERE user_id = ?", (user_id,))
 
-    # Messages écrits par ce compte sur d'autres commandes/tickets (ex: réponses d'un ancien admin)
     conn.execute("DELETE FROM order_messages WHERE author_id = ?", (user_id,))
     conn.execute("DELETE FROM ticket_messages WHERE author_id = ?", (user_id,))
-
     conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
     conn.commit()
     conn.close()
@@ -1100,8 +1147,6 @@ def admin_delete_user(user_id):
     return redirect(url_for("admin_users"))
 
 
-# Initialise la base de données dès le chargement du module
-# (nécessaire pour Gunicorn/Render qui n'exécute pas le bloc __main__)
 init_db()
 ensure_admin_account()
 
