@@ -2,10 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 import sqlite3
 import os
 import secrets
-import hashlib
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 from datetime import datetime, timedelta
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -27,14 +24,12 @@ ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@example.com")
 # URL de base du site, utilisée dans les emails (liens de vérification, etc.)
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:5000")
 
-# Config SMTP (Gmail conseillé : utiliser un "mot de passe d'application")
-SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USER = os.environ.get("SMTP_USER", "")  # ton adresse Gmail complète
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")  # le mot de passe d'application (16 caractères)
-SMTP_FROM_NAME = os.environ.get("SMTP_FROM_NAME", "TheGarden Labs")
+# Config Resend (API HTTPS — fonctionne sur Render, contrairement à SMTP qui peut être bloqué)
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")  # ta clé API Resend (commence par re_)
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "")  # ex: noreply@tondomaine.com (domaine vérifié sur Resend)
+RESEND_FROM_NAME = os.environ.get("RESEND_FROM_NAME", "TheGarden Labs")
 
-EMAIL_ENABLED = bool(SMTP_USER and SMTP_PASSWORD)
+EMAIL_ENABLED = bool(RESEND_API_KEY and RESEND_FROM_EMAIL)
 
 
 @app.context_processor
@@ -206,28 +201,37 @@ def make_token():
 # ---------------------------------------------------------------------------
 
 def send_email(to_email, subject, html_body):
-    """Envoie un email via SMTP (Gmail conseillé). Si SMTP n'est pas configuré,
-    le contenu est simplement affiché dans les logs (utile en dev local)."""
+    """Envoie un email via l'API Resend (HTTPS, pas bloqué par les hébergeurs comme SMTP peut l'être).
+    Si Resend n'est pas configuré, le contenu est simplement affiché dans les logs (utile en dev local).
+    Le timeout est volontairement court : un problème réseau ne doit jamais faire planter la requête
+    en cours (inscription, réponse à un ticket, etc.) — l'email est "best effort"."""
     if not EMAIL_ENABLED:
-        print(f"--- [EMAIL NON ENVOYÉ — SMTP non configuré] ---")
+        print(f"--- [EMAIL NON ENVOYÉ — Resend non configuré] ---")
         print(f"À: {to_email}\nSujet: {subject}\n{html_body}")
-        print("--- Configure SMTP_USER et SMTP_PASSWORD pour activer l'envoi réel ---")
+        print("--- Configure RESEND_API_KEY et RESEND_FROM_EMAIL pour activer l'envoi réel ---")
         return False
 
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = f"{SMTP_FROM_NAME} <{SMTP_USER}>"
-        msg["To"] = to_email
-        msg.attach(MIMEText(html_body, "html"))
-
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_USER, to_email, msg.as_string())
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": f"{RESEND_FROM_NAME} <{RESEND_FROM_EMAIL}>",
+                "to": [to_email],
+                "subject": subject,
+                "html": html_body,
+            },
+            timeout=8,  # court et volontaire : on ne bloque jamais longtemps une requête utilisateur
+        )
+        if response.status_code >= 400:
+            print(f"Erreur Resend ({response.status_code}) pour {to_email}: {response.text}")
+            return False
         return True
-    except Exception as e:
-        print(f"Erreur d'envoi d'email à {to_email}: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur d'envoi d'email (réseau) à {to_email}: {e}")
         return False
 
 
@@ -989,46 +993,51 @@ def admin_toggle_admin(user_id):
     return redirect(url_for("admin_users"))
 
 
+@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def admin_delete_user(user_id):
+    """Supprime un compte utilisateur ainsi que toutes ses commandes, tickets
+    et messages associés (suppression en cascade)."""
+    current = get_current_user()
+    if current["id"] == user_id:
+        flash("Tu ne peux pas supprimer ton propre compte depuis cette page.", "error")
+        return redirect(url_for("admin_users"))
+
+    conn = get_db()
+    target = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    if not target:
+        flash("Utilisateur introuvable.", "error")
+        conn.close()
+        return redirect(url_for("admin_users"))
+
+    target_email = target["email"]
+
+    order_ids = [r["id"] for r in conn.execute("SELECT id FROM orders WHERE user_id = ?", (user_id,)).fetchall()]
+    for oid in order_ids:
+        conn.execute("DELETE FROM order_messages WHERE order_id = ?", (oid,))
+    conn.execute("DELETE FROM orders WHERE user_id = ?", (user_id,))
+
+    ticket_ids = [r["id"] for r in conn.execute("SELECT id FROM tickets WHERE user_id = ?", (user_id,)).fetchall()]
+    for tid in ticket_ids:
+        conn.execute("DELETE FROM ticket_messages WHERE ticket_id = ?", (tid,))
+    conn.execute("DELETE FROM tickets WHERE user_id = ?", (user_id,))
+
+    # Messages écrits par ce compte sur d'autres commandes/tickets (ex: réponses d'un ancien admin)
+    conn.execute("DELETE FROM order_messages WHERE author_id = ?", (user_id,))
+    conn.execute("DELETE FROM ticket_messages WHERE author_id = ?", (user_id,))
+
+    conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+
+    flash(f"Compte {target_email} supprimé ({len(order_ids)} commande(s), {len(ticket_ids)} ticket(s)).", "success")
+    return redirect(url_for("admin_users"))
+
+
 # Initialise la base de données dès le chargement du module
 # (nécessaire pour Gunicorn/Render qui n'exécute pas le bloc __main__)
 init_db()
 ensure_admin_account()
-
-# ---------------------------------------------------------------------------
-# SUPPRESSION TEMPORAIRE D'UN COMPTE — À RETIRER APRÈS UTILISATION
-# Supprime le compte ci-dessous + toutes ses commandes/tickets/messages (cascade).
-# ---------------------------------------------------------------------------
-def _delete_account_by_email(email):
-    conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    if not user:
-        print(f"[SUPPRESSION] Aucun compte trouvé pour {email}")
-        conn.close()
-        return
-
-    uid = user["id"]
-
-    order_ids = [r["id"] for r in conn.execute("SELECT id FROM orders WHERE user_id = ?", (uid,)).fetchall()]
-    for oid in order_ids:
-        conn.execute("DELETE FROM order_messages WHERE order_id = ?", (oid,))
-    conn.execute("DELETE FROM orders WHERE user_id = ?", (uid,))
-
-    ticket_ids = [r["id"] for r in conn.execute("SELECT id FROM tickets WHERE user_id = ?", (uid,)).fetchall()]
-    for tid in ticket_ids:
-        conn.execute("DELETE FROM ticket_messages WHERE ticket_id = ?", (tid,))
-    conn.execute("DELETE FROM tickets WHERE user_id = ?", (uid,))
-
-    # Messages écrits par ce compte sur d'autres commandes/tickets (au cas où, ex: ancien admin)
-    conn.execute("DELETE FROM order_messages WHERE author_id = ?", (uid,))
-    conn.execute("DELETE FROM ticket_messages WHERE author_id = ?", (uid,))
-
-    conn.execute("DELETE FROM users WHERE id = ?", (uid,))
-    conn.commit()
-    conn.close()
-    print(f"[SUPPRESSION] Compte {email} supprimé avec {len(order_ids)} commande(s) et {len(ticket_ids)} ticket(s).")
-
-_delete_account_by_email("leo040016@gmail.com")
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
