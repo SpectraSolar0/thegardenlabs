@@ -3,8 +3,21 @@
 {% block content %}
 <section class="dashboard-section">
     <div class="dashboard-header">
-        <h1>Mon compte</h1>
-        <a href="{{ url_for('account_settings') }}" class="btn btn--sm">Paramètres</a>
+        <div style="display:flex;align-items:center;gap:1rem;">
+            {% if current_user['avatar'] %}
+            <img src="{{ url_for('static', filename='avatars/' + current_user['avatar']) }}"
+                 style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--clr-border);" />
+            {% else %}
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--clr-surface);border:2px solid var(--clr-border);display:flex;align-items:center;justify-content:center;color:var(--clr-text-muted);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+            {% endif %}
+            <div>
+                <h1 style="margin:0;">{{ current_user['username'] or current_user['email'] }}</h1>
+                <p style="margin:0;font-size:0.82rem;color:var(--clr-text-muted);">{{ current_user['email'] }}{% if current_user['is_admin'] %} · <span style="color:var(--clr-brand-dark);">Administrateur</span>{% endif %}</p>
+            </div>
+        </div>
+        <a href="{{ url_for('account_settings') }}" class="btn btn--sm btn--ghost">Paramètres</a>
     </div>
 
     <div class="dashboard-grid">
@@ -13,7 +26,6 @@
                 <h2>Mes commandes</h2>
                 <a href="{{ url_for('marketplace') }}" class="btn btn--sm btn--primary">Nouvelle commande</a>
             </div>
-
             {% if orders %}
             <ul class="record-list">
                 {% for order in orders %}
@@ -41,7 +53,6 @@
                 <h2>Mes tickets</h2>
                 <a href="{{ url_for('support') }}" class="btn btn--sm btn--primary">Nouveau ticket</a>
             </div>
-
             {% if tickets %}
             <ul class="record-list">
                 {% for ticket in tickets %}
