@@ -1,25 +1,59 @@
 {% extends 'base.html' %}
 {% block content %}
+
 <section class="hero">
-    <div class="hero__inner">
-        <h1>Des services Discord premium, accessibles.</h1>
-        <p>Serveurs clé en main, bots préfaits ou sur mesure — livrés vite, soignés toujours.</p>
-        <a href="{{ url_for('marketplace') }}" class="btn btn--primary">Voir les offres</a>
+  <div class="hero__inner">
+
+    <span class="hero__eyebrow">
+      <span class="hero__eyebrow-dot"></span>
+      Services Discord Premium
+    </span>
+
+    <h1 class="hero__title display">
+      Des services Discord premium,
+      <span class="line-brand">accessibles.</span>
+    </h1>
+
+    <p class="hero__sub">
+      Serveurs clé en main, bots préfaits ou sur mesure — livrés vite, soignés toujours.
+    </p>
+
+    <div class="hero__actions">
+      <a href="{{ url_for('marketplace') }}" class="btn btn--primary btn--lg">Voir les offres</a>
+      <a href="#how" class="btn btn--ghost btn--lg">Comment ça marche</a>
     </div>
+
+  </div>
 </section>
 
-<section class="products-preview">
-    <div class="products-grid">
-        {% for pid, p in products.items() %}
-        <div class="product-card">
-            {% if not p.in_stock %}<span class="product-card__badge product-card__badge--soldout">Épuisé</span>{% endif %}
-            <span class="product-card__icon">{{ p.icon }}</span>
-            <h3>{{ p.name }}</h3>
-            <p>{{ p.tagline }}</p>
-            <strong>{{ p.price }}</strong>
-            <a href="{{ url_for('product', product_id=pid) }}" class="btn btn--sm btn--primary">Découvrir</a>
-        </div>
-        {% endfor %}
+<section class="section">
+  <div class="products-grid">
+    {% for pid, p in products.items() %}
+    <div class="product-card {% if p.featured %}product-card--featured{% endif %}">
+
+      {% if not p.in_stock %}
+        <span class="badge product-card__badge">Épuisé</span>
+      {% endif %}
+
+      <div class="product-card__icon">{{ p.icon }}</div>
+
+      <div>
+        <p class="product-card__category">{{ p.category }}</p>
+        <h3 class="product-card__name">{{ p.name }}</h3>
+        <p class="product-card__tagline">{{ p.tagline }}</p>
+      </div>
+
+      <div class="product-card__price">
+        {{ p.price }}<small> EUR</small>
+      </div>
+
+      <div class="product-card__actions">
+        <a href="{{ url_for('product', product_id=pid) }}" class="btn btn--primary btn--sm">Découvrir</a>
+      </div>
+
     </div>
+    {% endfor %}
+  </div>
 </section>
+
 {% endblock %}
