@@ -21,7 +21,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 DISCORD_INVITE = "https://discord.gg/PAZHhUSXZj"
 
-REQUIRE_EMAIL_VERIFICATION = False
+REQUIRE_EMAIL_VERIFICATION = True
 
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@example.com")
 
